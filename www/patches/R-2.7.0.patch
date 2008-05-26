@@ -1,0 +1,612 @@
+diff -r -c R-2.7.0.org/src/library/grDevices/NAMESPACE R-2.7.0/src/library/grDevices/NAMESPACE
+*** R-2.7.0.org/src/library/grDevices/NAMESPACE	2008-03-25 21:26:41.000000000 +0900
+--- R-2.7.0/src/library/grDevices/NAMESPACE	2008-05-01 14:38:14.000000000 +0900
+***************
+*** 4,15 ****
+  
+  if(tools:::.OStype() == "windows") {
+      useDynLib(grDevices, R_chull,
+!               PicTeX, PostScript, XFig, PDF,
+                Cdevga=devga, CsavePlot=savePlot,
+                Type1FontInUse, CIDFontInUse, R_GD_nullDevice)
+  } else {
+      useDynLib(grDevices, R_chull,
+!               PicTeX, PostScript, XFig, PDF, CQuartz = Quartz,
+                Type1FontInUse, CIDFontInUse, R_GD_nullDevice)
+  }
+  
+--- 4,16 ----
+  
+  if(tools:::.OStype() == "windows") {
+      useDynLib(grDevices, R_chull,
+!               PicTeX, PostScript, XFig, PDF, PDFAnnotBox, PDFTextBoxInfo,
+                Cdevga=devga, CsavePlot=savePlot,
+                Type1FontInUse, CIDFontInUse, R_GD_nullDevice)
+  } else {
+      useDynLib(grDevices, R_chull,
+!               PicTeX, PostScript, XFig, PDF, PDFAnnotBox, PDFTextBoxInfo,
+! 	      CQuartz = Quartz,
+                Type1FontInUse, CIDFontInUse, R_GD_nullDevice)
+  }
+  
+***************
+*** 23,28 ****
+--- 24,31 ----
+         extendrange, getGraphicsEvent, graphics.off, gray, grey,
+         gray.colors, grey.colors, heat.colors, hsv, hcl, make.rgb,
+         n2mfrow, nclass.Sturges, nclass.FD, nclass.scott, palette, pdf,
++        pdf.annot.box, pdf.text.box.info, pdf.link.on.box, pdf.text.on.box,
++        pdf.link.on.text, pdf.text.on.text,
+         pdf.options, pdfFonts, pictex, postscript, postscriptFont,
+         postscriptFonts, ps.options, rainbow, recordGraphics,
+         recordPlot, replayPlot, rgb, rgb2hsv, savePlot, setEPS, setPS,
+diff -r -c R-2.7.0.org/src/library/grDevices/R/postscript.R R-2.7.0/src/library/grDevices/R/postscript.R
+*** R-2.7.0.org/src/library/grDevices/R/postscript.R	2008-03-25 21:26:40.000000000 +0900
+--- R-2.7.0/src/library/grDevices/R/postscript.R	2008-05-01 14:36:25.000000000 +0900
+***************
+*** 345,350 ****
+--- 345,421 ----
+      invisible()
+  }
+  
++ pdf.annot.box <- function(x0, y0, x1, y1, annotation_text, coord="USER")
++ {
++     ## is the device pdf?
++     if (names(dev.cur())[1] == "pdf") {
++ 	.External(PDFAnnotBox, x0, y0, x1, y1,
++ 		  as.character(annotation_text[1]), as.character(coord[1]))
++     }
++ }
++ 
++ pdf.text.box.info <- function()
++ {
++     ## is the device pdf?
++     if (names(dev.cur())[1] == "pdf") {
++ 	.External(PDFTextBoxInfo)
++     }
++ }
++ 
++ pdf.link.on.box <- function(x0, y0, x1, y1, url, col=c(0,1,1),
++ 			    border=c(0,0,1), coord="USER")
++ {
++     col <- as.numeric(abs(col))[1:3]
++     if (max(col)>1) {
++ 	col <- col / max(col)
++     }
++     border <- as.integer(abs(border))[1:3]
++     annotation_text <-
++ 	paste(paste(c("/C [", col, "]"), collapse=" "),
++ 	      paste(c("/Border [", border, "]"), collapse=" "),
++ 	      paste("/Subtype /Link /A << /Type /Action /S /URI /URI(",
++ 		    as.character(url[1]), ")>>", sep=""), sep="\n")
++     pdf.annot.box(x0, y0, x1, y1, annotation_text, coord)
++ }
++ 
++ pdf.text.on.box <- function(x0, y0, x1, y1, text, col=NULL,
++ 			    border=c(0,0,0), coord="USER")
++ {
++     if (length(col)>=1 && max(col)>1) {
++ 	col <- col / max(col)
++     }
++     border <- as.integer(abs(border))[1:3]
++     annotation_text <-
++ 	paste(paste(c("/C [", col, "]"), collapse=" "),
++ 	      paste(c("/Border [", border, "]"), collapse=" "),
++ 	      "/Subtype /Square",
++ 	      paste("/Contents (", paste(text, collapse="\r"), ")", sep=""),
++ 	      "/BS << /Type /Border /W 0 >>", sep="\n")
++     pdf.annot.box(x0, y0, x1, y1, annotation_text, coord)
++ }
++ 
++ pdf.link.on.text <- function(url, col=c(0,1,1), border=c(0,0,1))
++ {
++     geo <- pdf.text.box.info()
++     m <- matrix(c(geo[2], geo[3], -geo[3], geo[2]), nrow=2)/geo[1]
++     x <- cbind(c(0, -geo[8]), c(0, geo[7]),
++                c(geo[6], -geo[8]), c(geo[6], geo[7]))
++     xx <- m %*% x + c(geo[4], geo[5])
++     pdf.link.on.box(min(xx[1,]), min(xx[2,]), max(xx[1,]), max(xx[2,]), url,
++ 		    col, border, "DEVICE")
++ }
++ 
++ pdf.text.on.text <- function(text, col=c(0,1,1), border=c(0,0,1))
++ {
++     geo <- pdf.text.box.info()
++     m <- matrix(c(geo[2], geo[3], -geo[3], geo[2]), nrow=2)/geo[1]
++     x <- cbind(c(0, -geo[8]), c(0, geo[7]),
++                c(geo[6], -geo[8]), c(geo[6], geo[7]))
++     xx <- m %*% x + c(geo[4], geo[5])
++     pdf.text.on.box(min(xx[1,]), min(xx[2,]), max(xx[1,]), max(xx[2,]), text,
++ 		    col, border, "DEVICE")
++ }
++ 
+  .ps.prolog <- c(
+  "/gs  { gsave } def",
+  "/gr  { grestore } def",
+diff -r -c R-2.7.0.org/src/library/grDevices/src/devPS.c R-2.7.0/src/library/grDevices/src/devPS.c
+*** R-2.7.0.org/src/library/grDevices/src/devPS.c	2008-03-25 21:26:40.000000000 +0900
+--- R-2.7.0/src/library/grDevices/src/devPS.c	2008-04-30 00:08:55.000000000 +0900
+***************
+*** 49,54 ****
+--- 49,55 ----
+  #include <R_ext/Error.h>
+  #include "Fileio.h"
+  #include "grDevices.h"
++ #include <Rgraphics.h>          /* for GConvert and GUnit */
+  
+  #ifdef HAVE_ERRNO_H
+  #include <errno.h>
+***************
+*** 5136,5141 ****
+--- 5137,5146 ----
+      Rboolean inText;
+      char title[1024];
+  
++     char **annots; /* annotations in a page */
++     int annotsmax; /* allocated size */
++     int annotspos; /* nubmer of annotations */
++ 
+      /*
+       * Fonts and encodings used on the device
+       */
+***************
+*** 5149,5154 ****
+--- 5154,5166 ----
+      cidfontfamily   defaultCIDFont;
+      /* Record if fonts are used */
+      Rboolean fontUsed[100];
++ 
++     /*
++      * Current text geometry information (stored in PDF_Text)
++      */
++     int text_size;
++     double text_a, text_b, text_x, text_y;
++     double text_ascent, text_descent, text_width;
+  }
+  PDFDesc;
+  
+***************
+*** 5188,5197 ****
+--- 5200,5217 ----
+  static double PDF_StrWidth(const char *str,
+  			   const pGEcontext gc,
+  			   pDevDesc dd);
++ static void PDF_StrSize(const char *str,
++ 			const pGEcontext gc,
++ 			pDevDesc dd,
++ 			double *ascent_max,
++ 			double *descent_max,
++ 			double *width_sum);
+  static void PDF_Text(double x, double y, const char *str,
+  		     double rot, double hadj,
+  		     const pGEcontext gc,
+  		     pDevDesc dd);
++ static void PDF_free_annots(PDFDesc *pd);
++ static void PDF_add_annot(PDFDesc *pd, char *str);
+  #ifdef SUPPORT_MBCS
+  static double PDF_StrWidthUTF8(const char *str,
+  			       const pGEcontext gc,
+***************
+*** 5315,5320 ****
+--- 5335,5348 ----
+      }
+      pd->pagemax = 100;
+  
++     pd->annots = (char **) calloc(100, sizeof(char *));
++     if(!pd->annots) {
++ 	free(pd->pos); free(pd->pageobj); free(pd); free(dd);
++ 	error(_("cannot allocate pd->annots"));
++     }
++     pd->annotsmax = 100;
++     pd->annotspos = 0;
++ 
+  
+      /* initialize PDF device description */
+      strcpy(pd->filename, file);
+***************
+*** 5328,5334 ****
+  
+      if(strlen(encoding) > PATH_MAX - 1) {
+  	free(dd);
+! 	free(pd->pos); free(pd->pageobj); free(pd);
+  	error(_("encoding path is too long"));
+      }
+      /*
+--- 5356,5362 ----
+  
+      if(strlen(encoding) > PATH_MAX - 1) {
+  	free(dd);
+! 	free(pd->pos); free(pd->pageobj); PDF_free_annots(pd); free(pd);
+  	error(_("encoding path is too long"));
+      }
+      /*
+***************
+*** 5344,5349 ****
+--- 5372,5378 ----
+  	pd->encodings = enclist;
+      } else {
+  	free(dd);
++ 	PDF_free_annots(pd);
+  	free(pd);
+  	error(_("failed to load default encoding"));
+      }
+***************
+*** 5410,5415 ****
+--- 5439,5445 ----
+      }
+      if (!gotFont) {
+  	free(dd);
++ 	PDF_free_annots(pd);
+  	free(pd);
+  	error(_("Failed to initialise default PostScript font"));
+      }
+***************
+*** 5469,5474 ****
+--- 5499,5505 ----
+  	    pd->fonts = NULL;
+  	    pd->encodings = NULL;
+  	    free(dd);
++ 	    PDF_free_annots(pd);
+  	    free(pd);
+  	    error(_("Failed to initialise additional PostScript fonts"));
+  	}
+***************
+*** 5540,5545 ****
+--- 5571,5577 ----
+  	pd->fonts = NULL;
+  	pd->cidfonts = NULL;
+  	free(dd);
++ 	PDF_free_annots(pd);
+  	free(pd);
+  	error(_("invalid paper type '%s' (pdf)"), pd->papername);
+      }
+***************
+*** 5570,5576 ****
+  	pd->cidfonts = NULL;
+  	pd->encodings = NULL;
+  	free(dd);
+! 	free(pd->pos); free(pd->pageobj); free(pd);
+  	error(_("invalid foreground/background color (pdf)"));
+      }
+  
+--- 5602,5608 ----
+  	pd->cidfonts = NULL;
+  	pd->encodings = NULL;
+  	free(dd);
+! 	free(pd->pos); free(pd->pageobj); PDF_free_annots(pd); free(pd);
+  	error(_("invalid foreground/background color (pdf)"));
+      }
+  
+***************
+*** 5631,5637 ****
+  	pd->cidfonts = NULL;
+  	pd->encodings = NULL;
+  	free(dd);
+! 	free(pd->pos); free(pd->pageobj); free(pd);
+  	return 0;
+      }
+  
+--- 5663,5669 ----
+  	pd->cidfonts = NULL;
+  	pd->encodings = NULL;
+  	free(dd);
+! 	free(pd->pos); free(pd->pageobj); PDF_free_annots(pd); free(pd);
+  	return 0;
+      }
+  
+***************
+*** 6336,6341 ****
+--- 6368,6374 ----
+  static void PDF_endpage(PDFDesc *pd)
+  {
+      int here;
++     int i;
+      if(pd->inText) textoff(pd);
+      fprintf(pd->pdffp, "Q\n");
+      here = (int) ftell(pd->pdffp);
+***************
+*** 6343,6348 ****
+--- 6376,6397 ----
+      pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
+      fprintf(pd->pdffp, "%d 0 obj\n%d\nendobj\n", pd->nobjs,
+  	    here - pd->startstream);
++     pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
++     fprintf(pd->pdffp, "%d 0 obj\n<<\n/Type /Page\n/Parent 3 0 R\n/Contents %d 0 R\n/Resources 4 0 R\n",
++ 	    pd->nobjs, pd->nobjs-2);
++     if(pd->annotspos) {
++ 	fprintf(pd->pdffp, "/Annots [");
++ 	for(i = 0 ; i < pd->annotspos ; i++)
++ 	  fprintf(pd->pdffp, " %d 0 R", pd->nobjs+1+i);
++ 	fprintf(pd->pdffp, " ]\n");
++     }
++     fprintf(pd->pdffp, ">>\nendobj\n");
++     for(i = 0 ; i < pd->annotspos ; i++) {
++ 	pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
++ 	fprintf(pd->pdffp, "%d %s", pd->nobjs, pd->annots[i]);
++ 	free(pd->annots[i]);
++     }
++     pd->annotspos = 0;
+  }
+  
+  #define R_VIS(col) (R_ALPHA(col) > 0)
+***************
+*** 6352,6357 ****
+--- 6401,6407 ----
+  {
+      PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
+      char buf[512];
++     int i;
+  
+      if(pd->pageno >= pd->pagemax || pd->nobjs >= 3*pd->pagemax) {
+  	pd->pageobj = (int *)
+***************
+*** 6377,6386 ****
+  	}
+      }
+  
+!     pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
+!     pd->pageobj[pd->pageno++] = pd->nobjs;
+!     fprintf(pd->pdffp, "%d 0 obj\n<<\n/Type /Page\n/Parent 3 0 R\n/Contents %d 0 R\n/Resources 4 0 R\n>>\nendobj\n",
+! 	    pd->nobjs, pd->nobjs+1);
+      pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
+      fprintf(pd->pdffp, "%d 0 obj\n<<\n/Length %d 0 R\n>>\nstream\r\n",
+  	    pd->nobjs, pd->nobjs + 1);
+--- 6427,6433 ----
+  	}
+      }
+  
+!     pd->pageobj[pd->pageno++] = pd->nobjs+3;
+      pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
+      fprintf(pd->pdffp, "%d 0 obj\n<<\n/Length %d 0 R\n>>\nstream\r\n",
+  	    pd->nobjs, pd->nobjs + 1);
+***************
+*** 6411,6417 ****
+      freeDeviceEncList(pd->encodings);
+      pd->fonts = NULL;
+      pd->encodings = NULL;
+!     free(pd->pos); free(pd->pageobj); free(pd);
+  }
+  
+  static void PDF_Activate(pDevDesc dd) {}
+--- 6458,6464 ----
+      freeDeviceEncList(pd->encodings);
+      pd->fonts = NULL;
+      pd->encodings = NULL;
+!     free(pd->pos); free(pd->pageobj); PDF_free_annots(pd); free(pd);
+  }
+  
+  static void PDF_Activate(pDevDesc dd) {}
+***************
+*** 6663,6668 ****
+--- 6710,6716 ----
+      int face = gc->fontface;
+      double a, b, rot1;
+      const char *str1 = str;
++     double ascent, descent, width;
+  
+      if(!R_VIS(gc->col)) return;
+  
+***************
+*** 6683,6688 ****
+--- 6731,6745 ----
+  	    a, b, -b, a, x, y);
+      PostScriptWriteString(pd->pdffp, str1);
+      fprintf(pd->pdffp, " Tj\n");
++     pd->text_size = size;
++     pd->text_a = a;
++     pd->text_b = b;
++     pd->text_x = x;
++     pd->text_y = y;
++     PDF_StrSize(str1, gc, dd, &ascent, &descent, &width);
++     pd->text_ascent = ascent;
++     pd->text_descent = descent;
++     pd->text_width = width;
+  }
+  
+  #ifndef SUPPORT_MBCS
+***************
+*** 6711,6716 ****
+--- 6768,6774 ----
+      double a, b, rot1;
+      const char *str1 = str;
+      char *buff;
++     double ascent, descent, width;
+  
+      if(!R_VIS(gc->col)) return;
+  
+***************
+*** 6732,6737 ****
+--- 6790,6805 ----
+      if(fabs(b) < 0.01) b = 0.0;
+      if(!pd->inText) texton(pd);
+  
++     pd->text_size = size;
++     pd->text_a = a;
++     pd->text_b = b;
++     pd->text_x = x;
++     pd->text_y = y;
++     PDF_StrSize(str1, gc, dd, &ascent, &descent, &width);
++     pd->text_ascent = ascent;
++     pd->text_descent = descent;
++     pd->text_width = width;
++ 
+      if(isCIDFont(gc->fontfamily, PDFFonts, pd->defaultCIDFont) && face != 5) {
+  	/* NB we could be in a SBCS here */
+          unsigned char *buf = NULL /* -Wall */;
+***************
+*** 7048,7053 ****
+--- 7116,7146 ----
+  }
+  #endif
+  
++ static void PDF_StrSize(const char *str,
++ 			R_GE_gcontext *gc,
++ 			NewDevDesc *dd,
++ 			double* ascent_max,
++ 			double* descent_max,
++ 			double* width_sum)
++ {
++     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
++     int face = gc->fontface;
++     double ascent, descent, width;
++     int i, n;
++ 
++     *ascent_max = 0.0;
++     *descent_max = 0.0;
++     *width_sum = 0.0;
++  
++     n = (int) strlen(str);
++     for(i=0; i<n; i++) {
++ 	PDF_MetricInfo((int) str[i], gc, &ascent, &descent, &width, dd);
++ 	if (*ascent_max < ascent) *ascent_max = ascent;
++ 	if (*descent_max < descent) *descent_max = descent;
++ 	*width_sum += width;
++     }
++ }
++ 
+  static void PDF_MetricInfo(int c,
+  			   const pGEcontext gc,
+  			   double* ascent, double* descent,
+***************
+*** 7076,7081 ****
+--- 7169,7205 ----
+      *width = floor(gc->cex * gc->ps + 0.5) * *width;
+  }
+  
++ static void PDF_free_annots(PDFDesc *pd)
++ {
++     int i;
++     for (i = 0; i < pd->annotspos; i++) free(pd->annots[i]);
++     free(pd->annots);
++ }
++ 
++ static void PDF_add_annot(PDFDesc *pd, char *str)
++ {
++     char **annots;
++     char *annot_str;
++     int nchar;
++ 
++     if (pd->annotspos >= pd->annotsmax) {
++ 	annots = realloc(pd->annots, pd->annotsmax + 100);
++ 	if (annots) {
++ 	    pd->annots = annots;
++ 	    pd->annotsmax += 100;
++ 	} else {
++ 	    error(_("unable to increase annotation limit"));
++ 	}
++     }
++     nchar = strlen(str);
++     annot_str = (char *) calloc(nchar+1, sizeof(char));
++     if(!annot_str) {
++ 	error(_("cannot allocate pd->annots[i]"));
++     }
++     strncpy(annot_str, str, nchar+1);
++     pd->annots[pd->annotspos++] = annot_str;
++ }
++ 
+  
+  /*  PostScript Device Driver Parameters:
+   *  ------------------------
+***************
+*** 7302,7304 ****
+--- 7426,7496 ----
+      vmaxset(vmax);
+      return R_NilValue;
+  }
++ 
++ 
++ /* PDFAnnotBox(x0, y0, x1, y1, text, coord) */
++ 
++ SEXP PDFAnnotBox(SEXP args)
++ {
++     pGEDevDesc gdd = GEcurrentDevice();
++     PDFDesc *pd = (PDFDesc *) gdd->dev->deviceSpecific;
++     double x0, y0, x1, y1;
++     char *text, *coord;
++     GUnit from, to;
++     char annot_text[1024] = "";
++ 
++     args = CDR(args);
++     x0 = asReal(CAR(args)); args = CDR(args);
++     y0 = asReal(CAR(args)); args = CDR(args);
++     x1 = asReal(CAR(args)); args = CDR(args);
++     y1 = asReal(CAR(args)); args = CDR(args);
++     text = (char *)CHAR(asChar(CAR(args))); args = CDR(args);
++     coord = (char *)CHAR(asChar(CAR(args)));
++ 
++     if (strcmp("DEVICE", coord) == 0) { from = DEVICE; }
++     if (strcmp("NDC",    coord) == 0) { from = NDC; }
++     if (strcmp("INCHES", coord) == 0) { from = INCHES; }
++     if (strcmp("OMA1",   coord) == 0) { from = OMA1; }
++     if (strcmp("OMA2",   coord) == 0) { from = OMA2; }
++     if (strcmp("OMA3",   coord) == 0) { from = OMA3; }
++     if (strcmp("OMA4",   coord) == 0) { from = OMA4; }
++     if (strcmp("NIC",    coord) == 0) { from = NIC; }
++     if (strcmp("NFC",    coord) == 0) { from = NFC; }
++     if (strcmp("MAR1",   coord) == 0) { from = MAR1; }
++     if (strcmp("MAR2",   coord) == 0) { from = MAR2; }
++     if (strcmp("MAR3",   coord) == 0) { from = MAR3; }
++     if (strcmp("MAR4",   coord) == 0) { from = MAR4; }
++     if (strcmp("NPC",    coord) == 0) { from = NPC; }
++     if (strcmp("USER",   coord) == 0) { from = USER; }
++     to = DEVICE;
++ 
++     GConvert(&x0, &y0, from, to, gdd);
++     GConvert(&x1, &y1, from, to, gdd);
++ 
++     snprintf(annot_text, 1024,
++            "0 obj <<\n/Type /Annot\n/Rect [ %.2f %.2f %.2f %.2f ]\n%s\n>> endobj\n",
++           x0, y0, x1, y1, text);
++     PDF_add_annot(pd, annot_text);
++     return R_NilValue;
++ }
++ 
++ 
++ /* PDFTextBoxInfo() */
++ 
++ SEXP PDFTextBoxInfo(SEXP args)
++ {
++     PDFDesc *pd = GEcurrentDevice()->dev->deviceSpecific;
++     SEXP out;
++ 
++     out = allocVector(REALSXP, 8);
++     REAL(out)[0] = pd->text_size;
++     REAL(out)[1] = pd->text_a;
++     REAL(out)[2] = pd->text_b;
++     REAL(out)[3] = pd->text_x;
++     REAL(out)[4] = pd->text_y;
++     REAL(out)[5] = pd->text_width;
++     REAL(out)[6] = pd->text_ascent;
++     REAL(out)[7] = pd->text_descent;
++ 
++     return out;
++ }
+diff -r -c R-2.7.0.org/src/library/grDevices/src/grDevices.h R-2.7.0/src/library/grDevices/src/grDevices.h
+*** R-2.7.0.org/src/library/grDevices/src/grDevices.h	2008-04-12 11:05:03.000000000 +0900
+--- R-2.7.0/src/library/grDevices/src/grDevices.h	2008-04-30 00:08:55.000000000 +0900
+***************
+*** 44,49 ****
+--- 44,52 ----
+  SEXP Quartz(SEXP);
+  SEXP makeQuartzDefault();
+  
++ SEXP PDFAnnotBox(SEXP);
++ SEXP PDFTextBoxInfo(SEXP);
++ 
+  SEXP R_GD_nullDevice();
+  
+  Rboolean
+diff -r -c R-2.7.0.org/src/library/grDevices/src/init.c R-2.7.0/src/library/grDevices/src/init.c
+*** R-2.7.0.org/src/library/grDevices/src/init.c	2008-04-12 11:05:03.000000000 +0900
+--- R-2.7.0/src/library/grDevices/src/init.c	2008-04-30 00:08:55.000000000 +0900
+***************
+*** 65,70 ****
+--- 65,72 ----
+  #else
+      EXTDEF(Quartz, 12),
+  #endif
++     EXTDEF(PDFAnnotBox, 6),
++     EXTDEF(PDFTextBoxInfo, 0),
+      {NULL, NULL, 0}
+  };
+  
