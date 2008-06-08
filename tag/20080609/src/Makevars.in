@@ -1,0 +1,2 @@
+#PKG_CFLAGS=-I/Library/Frameworks/R.framework/PrivateHeaders -DHAVE_CONFIG_H
+PKG_CFLAGS=-I@R_INTERNAL_HEADER_DIR@ -DHAVE_CONFIG_H
