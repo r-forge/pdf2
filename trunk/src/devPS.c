@@ -3,6 +3,7 @@
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *  Copyright (C) 1998--2008  Robert Gentleman, Ross Ihaka and the
  *                            R Development Core Team
+ *  Copyright (C) 2008        Tadashi Kadowaki
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
