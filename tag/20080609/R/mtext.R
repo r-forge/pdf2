@@ -1,7 +1,0 @@
-mtext <- function()
-{
-}
-
-text <- function()
-{
-}
