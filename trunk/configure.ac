@@ -54,6 +54,13 @@ case "${host_os}" in
 esac
 AC_SUBST(R_OSTYPE)
 
+AC_CHECK_TYPES([intptr_t, uintptr_t], , , [#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif])
+
 #####
 
 AC_OUTPUT
