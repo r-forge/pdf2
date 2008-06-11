@@ -28,6 +28,10 @@ pdf.text <- function(text="", link=T, col=c(0,1,1), border=c(0,0,1))
 
 ### export functions ###
 
+pdf2 <- function(...) {
+  pdf(...)
+}
+
 pdf.box <- function(x0, y0, x1, y1, text="", link=T, col=c(0,1,1),
                     border=c(0,0,1), coord="USER")
 {

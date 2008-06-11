@@ -2,7 +2,7 @@
 ## information rather than use .registration as there are symbols that
 ## conflict with functions on Windows, i.e. savePlot.
 
-export(pdf, pdf.options, pdfFonts, pdf.box, pdf.text, mtext, text)
+export(pdf, pdf2, pdf.options, pdfFonts, pdf.box, pdf.text, mtext, text)
 
 S3method("checkFont", "default")
 S3method("checkFont", "Type1Font")
