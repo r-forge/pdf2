@@ -30,44 +30,10 @@ pdf.box(x0, y0, x1, y1, text = "", link = TRUE, col = c(0, 1, 1), border = c(0, 
   \item{comp2 }{Description of 'comp2'}
   ...
 }
-\references{ ~put references to the literature/web site here ~ }
 \author{Tadashi Kadowaki, R Development Core Team and contributors worldwide}
 \note{ ~~further notes~~ 
 
  ~Make other sections like Warning with \section{Warning }{....} ~
 }
 \seealso{ ~~objects to See Also as \code{\link{help}}, ~~~ }
-\examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
-
-## The function is currently defined as
-function(x0, y0, x1, y1, text="", link=TRUE, col=c(0,1,1),
-                    border=c(0,0,1), coord="USER")
-{
-    col <- as.numeric(abs(col))[1:3]
-    if (max(col)>1) { col <- col / max(col) }
-    border <- as.integer(abs(border))[1:3]
-    if (link) {
-        annotation_text <-
-          paste(paste(c("/C [", col, "]"), collapse=" "),
-                paste(c("/Border [", border, "]"), collapse=" "),
-                paste("/Subtype /Link /A << /Type /Action /S /URI /URI(",
-                      as.character(text[1]), ")>>", sep=""),
-                sep="\n")
-    } else {
-        annotation_text <- 
-          paste(paste(c("/C [", col, "]"), collapse=" "),
-                paste(c("/Border [", border, "]"), collapse=" "),
-                "/Subtype /Square",
-                paste("/Contents (", paste(text, collapse="\r"), ")", sep=""),
-                "/BS << /Type /Border /W 0 >>",
-                sep="\n")
-    }
-    pdf.annot.box(x0, y0, x1, y1, annotation_text, coord)
-  }
-}
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{aplot}

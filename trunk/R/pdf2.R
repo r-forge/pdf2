@@ -15,7 +15,7 @@ pdf.text.info <- function()
     }
 }
 
-pdf.text <- function(text="", link=T, col=c(0,1,1), border=c(0,0,1))
+pdf.text <- function(text="", link=TRUE, col=c(0,1,1), border=c(0,0,1))
 {
     geo <- pdf.text.info()
     m <- matrix(c(geo[2], geo[3], -geo[3], geo[2]), nrow=2)/geo[1]
@@ -32,7 +32,7 @@ pdf2 <- function(...) {
   pdf(...)
 }
 
-pdf.box <- function(x0, y0, x1, y1, text="", link=T, col=c(0,1,1),
+pdf.box <- function(x0, y0, x1, y1, text="", link=TRUE, col=c(0,1,1),
                     border=c(0,0,1), coord="USER")
 {
     col <- as.numeric(abs(col))[1:3]
@@ -61,10 +61,10 @@ mtext <- function (..., url, popup, pcol = c(0,1,1), border=c(0,0,1))
 {
     graphics::mtext(...)
     if (!missing(url)) {
-        pdf.text(url, T, pcol, border)
+        pdf.text(url, TRUE, pcol, border)
     }
     if (!missing(popup)) {
-        pdf.text(popup, F, pcol, border)
+        pdf.text(popup, FALSE, pcol, border)
     }
 }
 
@@ -72,9 +72,9 @@ text <- function(..., url, popup, pcol = c(0,1,1), border=c(0,0,1))
 {
     graphics::text(...)
     if (!missing(url)) {
-        pdf.text(url, T, pcol, border)
+        pdf.text(url, TRUE, pcol, border)
     }
     if (!missing(popup)) {
-        pdf.text(popup, F, pcol, border)
+        pdf.text(popup, FALSE, pcol, border)
     }
 }

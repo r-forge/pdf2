@@ -9,7 +9,6 @@
 \usage{
 mtext(..., url, popup, pcol = c(0, 1, 1), border = c(0, 0, 1))
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{\dots}{arguments for the \code{mtext} function of the
     \code{graphics} package; see its help page}
@@ -17,7 +16,7 @@ mtext(..., url, popup, pcol = c(0, 1, 1), border = c(0, 0, 1))
   \item{popup}{text for the pop-up that will be displayed when
                one hovers over the (\code{mtext}) text}
   \item{pcol}{ ~~Describe \code{pcol} here~~ }
-  \item{border}{ ~~Describe \code{border} here~~ }
+  \item{border}{ ~~Describe \code{border} here~~}
 }
 \details{
   ~~ If necessary, more details than the description above ~~

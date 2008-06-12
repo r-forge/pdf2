@@ -1,55 +1,36 @@
 \name{text}
 \alias{text}
-%- Also NEED an '\alias' for EACH other topic documented here.
-\title{ ~~function to do ... ~~ }
+\title{Add Text to a Plot}
 \description{
-  ~~ A concise (1-5 lines) description of what the function does. ~~
+  This is a wrapper around the \code{text} function of the
+  \code{graphics} package allowing to add pop-ups and / or
+  hyperlinks for the pdf device.
+
+  'text' draws the strings given in the vector 'labels' at the
+  coordinates given by 'x' and 'y'. 'y' may be missing since
+  'xy.coords(x,y)' is used for construction of the coordinates.
 }
 \usage{
 text(..., url, popup, pcol = c(0, 1, 1), border = c(0, 0, 1))
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{\dots}{ ~~Describe \code{\dots} here~~ }
-  \item{url}{ ~~Describe \code{url} here~~ }
-  \item{popup}{ ~~Describe \code{popup} here~~ }
+  \item{\dots}{arguments for the \code{text} function of the \code{graphics}
+    package}
+  \item{url}{character vector of length one giving the URL for the hyperlink
+    to which the text should point upon clicking}
+  \item{popup}{character vector of length one giving the text that should 
+    be displayed in the pop-up that appears when hovering over the text}
   \item{pcol}{ ~~Describe \code{pcol} here~~ }
   \item{border}{ ~~Describe \code{border} here~~ }
 }
-\details{
-  ~~ If necessary, more details than the description above ~~
-}
 \value{
-  ~Describe the value returned
-  If it is a LIST, use
-  \item{comp1 }{Description of 'comp1'}
-  \item{comp2 }{Description of 'comp2'}
-  ...
+  The strings in the 'labels' argument are drawn on the current
+  device as specified
 }
-\references{ ~put references to the literature/web site here ~ }
 \author{Tadashi Kadowaki, R Development Core Team and contributors worldwide}
 \note{ ~~further notes~~ 
 
  ~Make other sections like Warning with \section{Warning }{....} ~
 }
-\seealso{ ~~objects to See Also as \code{\link{help}}, ~~~ }
-\examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
-
-## The function is currently defined as
-function(..., url, popup, pcol = c(0,1,1), border=c(0,0,1))
-{
-    graphics::text(...)
-    if (!missing(url)) {
-        pdf.text(url, TRUE, pcol, border)
-    }
-    if (!missing(popup)) {
-        pdf.text(popup, FALSE, pcol, border)
-    }
-  }
-}
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
+\seealso{\code{\link[graphics]{text}}}
 \keyword{aplot}
