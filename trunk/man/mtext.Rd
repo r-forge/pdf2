@@ -7,7 +7,7 @@
   hyperlinks for the pdf device.
 }
 \usage{
-mtext(..., url, popup, pcol = c(0, 1, 1), border = c(0, 0, 1))
+mtext(..., url, popup, pcol = "cyan", border = c(0, 0, 1))
 }
 \arguments{
   \item{\dots}{arguments for the \code{mtext} function of the
@@ -15,8 +15,8 @@ mtext(..., url, popup, pcol = c(0, 1, 1), border = c(0, 0, 1))
   \item{url}{URL to which the hyperlink will point}
   \item{popup}{text for the pop-up that will be displayed when
                one hovers over the (\code{mtext}) text}
-  \item{pcol}{ ~~Describe \code{pcol} here~~ }
-  \item{border}{ ~~Describe \code{border} here~~}
+  \item{pcol}{color of border; defaults to "cyan"}
+  \item{border}{horizontal corner radius, vertical corner radius, and border width}
 }
 \details{
   ~~ If necessary, more details than the description above ~~
@@ -31,22 +31,5 @@ mtext(..., url, popup, pcol = c(0, 1, 1), border = c(0, 0, 1))
 
  ~Make other sections like Warning with \section{Warning }{....} ~
 }
-\seealso{ ~~objects to See Also as \code{\link{help}}, ~~~ }
-\examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
-
-## The function is currently defined as
-function (..., url, popup, pcol = c(0,1,1), border=c(0,0,1))
-{
-    graphics::mtext(...)
-    if (!missing(url)) {
-        pdf.text(url, TRUE, pcol, border)
-    }
-    if (!missing(popup)) {
-        pdf.text(popup, FALSE, pcol, border)
-    }
-  }
-}
+\seealso{\code{\link[graphics]{mtext}}}
 \keyword{aplot}

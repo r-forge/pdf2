@@ -20,8 +20,8 @@ text(..., url, popup, pcol = c(0, 1, 1), border = c(0, 0, 1))
     to which the text should point upon clicking}
   \item{popup}{character vector of length one giving the text that should 
     be displayed in the pop-up that appears when hovering over the text}
-  \item{pcol}{ ~~Describe \code{pcol} here~~ }
-  \item{border}{ ~~Describe \code{border} here~~ }
+  \item{pcol}{color of border; defaults to "cyan"}
+  \item{border}{horizontal corner radius, vertical corner radius, and border width}
 }
 \value{
   The strings in the 'labels' argument are drawn on the current

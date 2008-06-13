@@ -6,16 +6,16 @@
   ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-pdf.annot.box(x0, y0, x1, y1, annotation_text, coord = "USER")
+pdf.annot.box(xleft, ybottom, xright, ytop, annotation_text, coord = "USER")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{x0}{ ~~Describe \code{x0} here~~ }
-  \item{y0}{ ~~Describe \code{y0} here~~ }
-  \item{x1}{ ~~Describe \code{x1} here~~ }
-  \item{y1}{ ~~Describe \code{y1} here~~ }
+  \item{xleft}{left x coordinate(s) of the box}
+  \item{ybottom}{bottom y coordinate(s) of the box}
+  \item{xright}{right x coordinate(s) of the box}
+  \item{ytop}{top y coordinate(s) of the box}
   \item{annotation_text}{ ~~Describe \code{annotation_text} here~~ }
-  \item{coord}{ ~~Describe \code{coord} here~~ }
+  \item{coord}{coordinate system; defaults to "USER"}
 }
 \details{
   ~~ If necessary, more details than the description above ~~
@@ -34,20 +34,4 @@ pdf.annot.box(x0, y0, x1, y1, annotation_text, coord = "USER")
  ~Make other sections like Warning with \section{Warning }{....} ~
 }
 \seealso{ ~~objects to See Also as \code{\link{help}}, ~~~ }
-\examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
-
-## The function is currently defined as
-function(x0, y0, x1, y1, annotation_text, coord="USER")
-{
-    if (names(dev.cur())[1] == "pdf") {
-        .External(PDFAnnotBox, x0, y0, x1, y1,
-                  as.character(annotation_text[1]), as.character(coord[1]))
-    }
-  }
-}
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{device}

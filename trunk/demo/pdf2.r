@@ -12,8 +12,9 @@ pdf.box(1, 5, 3, 8, "http://www.r-project.org")
 ###################################################
 ## You can also make popup text box by "pdf.box" ##
 ###################################################
-for(i in 1:10)
-  pdf.box(i-0.1, i-0.1, i+0.1, i+0.1, LETTERS[i], link=FALSE, border=c(0,0,0))
+x <- 1:10
+pdf.box(x-0.1, x-0.1, x+0.1, x+0.1, LETTERS[x], link=FALSE, border=c(0,0,1))
+
 text(5, 9, "mouse over points!", col=2)
 
 ############################################################
