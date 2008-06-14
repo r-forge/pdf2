@@ -9,6 +9,41 @@ pdf.annot.box <- function(xleft, ybottom, xright, ytop,
     }
 }
 
+pdf.box <- function(xleft, ybottom, xright, ytop, text="", link=TRUE,
+                    col="cyan", border=c(0,0,1), coord="USER")
+{
+    text <- rep(text, length.out=length(xleft))
+    link <- rep(link, length.out=length(xleft))
+    col <- rep(col, length.out=length(xleft))
+    col <- rcol2pdfcol(col)
+    for (i in seq(along=xleft)) {
+        if (any(is.na(col[,i]))) { # do not draw border line
+            col[,i] <- c(1,1,1)
+            border <- c(0,0,0)
+        } else {
+            border <- as.integer(abs(border))[1:3]
+        }
+        if (link[i]) {
+            annotation_text <-
+                paste(paste(c("/C [", col[,i], "]"), collapse=" "),
+                      paste(c("/Border [", border, "]"), collapse=" "),
+                      paste("/Subtype /Link /A << /Type /Action /S /URI /URI(",
+                            as.character(text[i]), ")>>", sep=""),
+                      sep="\n")
+        } else {
+            annotation_text <- 
+                paste(paste(c("/C [", col[,i], "]"), collapse=" "),
+                      paste(c("/Border [", border, "]"), collapse=" "),
+                      "/Subtype /Square",
+                      paste("/Contents (", as.character(text[i]), ")", sep=""),
+                      "/BS << /Type /Border /W 0 >>",
+                      sep="\n")
+        }
+        pdf.annot.box(xleft[i], ybottom[i], xright[i], ytop[i],
+                      annotation_text, coord)
+    }
+}
+
 pdf.text.info <- function()
 {
     if (names(dev.cur())[1] == "pdf") {
@@ -29,45 +64,24 @@ pdf.text <- function(text="", link=TRUE, col="cyan", border=c(0,0,1))
 
 rcol2pdfcol <- function(col)
 {
+    rgb <- matrix(NA, nrow=3, ncol=length(col))
+    palette.col <- palette()
     if (is.numeric(col)) {
-      col <- palette()[col]
+        idx <- col %in % seq(aling=palette.col)
+        rgb[,idx] <- col2rgb(palette.col[col[idx]])/255
+    } else {
+        idx <- !is.na(col)
+        rgb[,idx] <- col2rgb(col[idx])/255
     }
-    col2rgb(col)/255
+    rgb
 }
 
 ### Export functions ###
 
 pdf2 <- function(...) {
-  pdf(...)
+    pdf(...)
 }
 
-pdf.box <- function(xleft, ybottom, xright, ytop, text="", link=TRUE,
-                    col="cyan", border=c(0,0,1), coord="USER")
-{
-    col <- as.vector(rcol2pdfcol(col))
-    for (i in seq(along=xleft)) {
-        border <- as.integer(abs(border))[1:3]
-        if (link) {
-            annotation_text <-
-                paste(paste(c("/C [", col, "]"), collapse=" "),
-                      paste(c("/Border [", border, "]"), collapse=" "),
-                      paste("/Subtype /Link /A << /Type /Action /S /URI /URI(",
-                            as.character(text[i]), ")>>", sep=""),
-                      sep="\n")
-        } else {
-            annotation_text <- 
-                paste(paste(c("/C [", col, "]"), collapse=" "),
-                      paste(c("/Border [", border, "]"), collapse=" "),
-                      "/Subtype /Square",
-                      paste("/Contents (", as.character(text[i]), ")", sep=""),
-                      "/BS << /Type /Border /W 0 >>",
-                      sep="\n")
-        }
-        pdf.annot.box(xleft[i], ybottom[i], xright[i], ytop[i],
-                      annotation_text, coord)
-    }
-}
-    
 mtext <- function (..., url, popup, pcol="cyan", border=c(0,0,1))
 {
     graphics::mtext(...)
@@ -87,5 +101,16 @@ text <- function(..., url, popup, pcol="cyan", border=c(0,0,1))
     }
     if (!missing(popup)) {
         pdf.text(popup, FALSE, pcol, border)
+    }
+}
+
+rect <- function(xleft, ybottom, xright, ytop, ..., url, popup){
+    graphics::rect(xleft, ybottom, xright, ytop, ...)
+    col <- rep(NA, length(xleft))
+    if (!missing(url)){
+        pdf.box(xleft, ybottom, xright, ytop, url, TRUE, col=col)
+    }
+    if (!missing(popup)) {
+        pdf.box(xleft, ybottom, xright, ytop, popup, TRUE, col=col)
     }
 }

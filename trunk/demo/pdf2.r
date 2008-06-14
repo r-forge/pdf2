@@ -4,16 +4,16 @@ par(oma=c(2,2,2,2))
 
 plot(1:10)
 
-############################################
-## You can make URL link box by "pdf.box" ##
-############################################
-pdf.box(1, 5, 3, 8, "http://www.r-project.org")
+###########################################################
+## You can make URL link box by "rect" with "url" option ##
+###########################################################
+rect(1, 5, 3, 8, border="cyan", url="http://www.r-project.org")
 
-###################################################
-## You can also make popup text box by "pdf.box" ##
-###################################################
+####################################################################
+## You can also make popup text box by "rect" with "popup" option ##
+####################################################################
 x <- 1:10
-pdf.box(x-0.1, x-0.1, x+0.1, x+0.1, LETTERS[x], link=FALSE, border=c(0,0,1))
+rect(x-0.1, x-0.1, x+0.1, x+0.1, border=NA, popup=LETTERS[x])
 
 text(5, 9, "mouse over points!", col=2)
 
