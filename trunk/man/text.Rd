@@ -11,7 +11,7 @@
   'xy.coords(x,y)' is used for construction of the coordinates.
 }
 \usage{
-text(..., url, popup, pcol = c(0, 1, 1), border = c(0, 0, 1))
+text(..., url, popup, pcol = "cyan", border = c(0, 0, 1))
 }
 \arguments{
   \item{\dots}{arguments for the \code{text} function of the \code{graphics}
@@ -20,7 +20,8 @@ text(..., url, popup, pcol = c(0, 1, 1), border = c(0, 0, 1))
     to which the text should point upon clicking}
   \item{popup}{character vector of length one giving the text that should 
     be displayed in the pop-up that appears when hovering over the text}
-  \item{pcol}{color of border; defaults to "cyan"}
+  \item{pcol}{color of the border around the text that is often
+        used to indicate there is a link; defaults to "cyan"}
   \item{border}{horizontal corner radius, vertical corner radius, and border width}
 }
 \value{
@@ -28,9 +29,5 @@ text(..., url, popup, pcol = c(0, 1, 1), border = c(0, 0, 1))
   device as specified
 }
 \author{Tadashi Kadowaki, R Development Core Team and contributors worldwide}
-\note{ ~~further notes~~ 
-
- ~Make other sections like Warning with \section{Warning }{....} ~
-}
 \seealso{\code{\link[graphics]{text}}}
 \keyword{aplot}

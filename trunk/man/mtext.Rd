@@ -15,21 +15,14 @@ mtext(..., url, popup, pcol = "cyan", border = c(0, 0, 1))
   \item{url}{URL to which the hyperlink will point}
   \item{popup}{text for the pop-up that will be displayed when
                one hovers over the (\code{mtext}) text}
-  \item{pcol}{color of border; defaults to "cyan"}
+  \item{pcol}{color of the border around the text that is often
+        used to indicate there is a link; defaults to "cyan"}
   \item{border}{horizontal corner radius, vertical corner radius, and border width}
-}
-\details{
-  ~~ If necessary, more details than the description above ~~
 }
 \value{
   The given text is written onto the current plot with
   the hyperlink and / or pop-up specified.
 }
-\references{ ~put references to the literature/web site here ~ }
 \author{Tadashi Kadowaki, R Development Core Team and contributors worldwide}
-\note{ ~~further notes~~ 
-
- ~Make other sections like Warning with \section{Warning }{....} ~
-}
 \seealso{\code{\link[graphics]{mtext}}}
 \keyword{aplot}

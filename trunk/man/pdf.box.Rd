@@ -5,7 +5,7 @@
   Function that will draw a pop-up text box on the current device.
 }
 \usage{
-pdf.box(xleft, ybottom, xright, ytop, text = "", link = TRUE, col = c(0, 1, 1), border = "cyan")
+pdf.box(xleft, ybottom, xright, ytop, text = "", link = TRUE, col = "cyan", border = c(0, 1, 1))
 }
 \arguments{
   \item{xleft}{left x coordinate(s) of the box}
@@ -20,16 +20,9 @@ pdf.box(xleft, ybottom, xright, ytop, text = "", link = TRUE, col = c(0, 1, 1), 
   \item{border}{horizontal corner radius, vertical corner radius, and border width}
   \item{coord}{coordinate system; defaults to "USER"}
 }
-\details{
-  ~~ If necessary, more details than the description above ~~
-}
 \value{
   pop-up boxes are drawn on the current device
 }
 \author{Tadashi Kadowaki, R Development Core Team and contributors worldwide}
-\note{ ~~further notes~~ 
-
- ~Make other sections like Warning with \section{Warning }{....} ~
-}
-\seealso{ ~~objects to See Also as \code{\link{help}}, ~~~ }
+\seealso{\code{\link{pdf.annot.box}}}
 \keyword{aplot}

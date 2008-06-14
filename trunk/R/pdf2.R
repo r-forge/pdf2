@@ -12,7 +12,7 @@ pdf.annot.box <- function(xleft, ybottom, xright, ytop,
 pdf.text.info <- function()
 {
     if (names(dev.cur())[1] == "pdf") {
-	.External(PDFTextBoxInfo)
+        .External(PDFTextBoxInfo)
     }
 }
 
@@ -29,7 +29,7 @@ pdf.text <- function(text="", link=TRUE, col="cyan", border=c(0,0,1))
 
 rcol2pdfcol <- function(col)
 {
-    if (is.numeric(col[1])) {
+    if (is.numeric(col)) {
       col <- palette()[col]
     }
     col2rgb(col)/255
