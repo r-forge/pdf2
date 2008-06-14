@@ -67,7 +67,7 @@ rcol2pdfcol <- function(col)
     rgb <- matrix(NA, nrow=3, ncol=length(col))
     palette.col <- palette()
     if (is.numeric(col)) {
-        idx <- col %in % seq(aling=palette.col)
+        idx <- col %in % seq(along=palette.col)
         rgb[,idx] <- col2rgb(palette.col[col[idx]])/255
     } else {
         idx <- !is.na(col)
