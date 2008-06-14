@@ -12,7 +12,7 @@ mtext(..., url, popup, pcol = "cyan", border = c(0, 0, 1))
 \arguments{
   \item{\dots}{arguments for the \code{mtext} function of the
     \code{graphics} package; see its help page}
-  \item{url}{URL to which the hyperlink will point}
+  \item{url}{URL(s) to which the hyperlink(s) will point}
   \item{popup}{text for the pop-up that will be displayed when
                one hovers over the (\code{mtext}) text}
   \item{pcol}{color of the border around the text that is often

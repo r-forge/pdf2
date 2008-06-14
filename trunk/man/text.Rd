@@ -26,7 +26,7 @@ text(..., url, popup, pcol = "cyan", border = c(0, 0, 1))
 }
 \value{
   The strings in the 'labels' argument are drawn on the current
-  device as specified
+  device as specified.
 }
 \author{Tadashi Kadowaki, R Development Core Team and contributors worldwide}
 \seealso{\code{\link[graphics]{text}}}

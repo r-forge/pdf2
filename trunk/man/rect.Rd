@@ -19,13 +19,14 @@ rect(xleft, ybottom, xright, ytop, ..., url, popup)
   \item{ytop}{a vector (or scalar) of top y positions.}
   \item{\dots}{other arguments to be passed to the
     \code{rect} function of the \code{graphics} package}
-  \item{url}{ ~~Describe \code{url} here~~ }
-  \item{popup}{ ~~Describe \code{popup} here~~ }
+  \item{url}{URL(s) to which the hyperlink(s) will point}
+  \item{popup}{text(s) for the pop-up(s) that will be displayed when
+               one hovers over the (\code{mtext}) text(s)}
 }
 \value{
-  The given rectangles are written onto the current plot with
-  the hyperlinks and / or pop-ups specified.
+  The given rectangle(s) are written onto the current plot with
+  the hyperlink(s) and / or pop-up(s) specified.
 }
 \author{Tadashi Kadowaki, R Development Core Team and contributors worldwide}
-\seealso{See Also \code{\link{mtext}}, \code{\link{text}}}
+\seealso{See Also \code{\link[graphics]{rect}}, \code{\link{mtext}} and \code{\link{text}}.}
 \keyword{aplot}
