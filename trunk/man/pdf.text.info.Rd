@@ -1,6 +1,6 @@
 \name{pdf.text.info}
 \alias{pdf.text.info}
-\title{ ~~function to do ... ~~ }
+\title{Internal Function to do ... ~~ }
 \description{
   ~~ A concise (1-5 lines) description of what the function does. ~~
 }
@@ -19,9 +19,9 @@ pdf.text.info()
   ...
 }
 \author{Tadashi Kadowaki, R Development Core Team and contributors worldwide}
-\note{ ~~further notes~~ 
-
- ~Make other sections like Warning with \section{Warning }{....} ~
+\note{
+  This function is an internal function that is not exported into
+  the \code{pdf2} name space. It is documented for purposes of completeness.
 }
-\seealso{ ~~objects to See Also as \code{\link{help}}, ~~~ }
+\seealso{\code{\link{pdf.text}}}
 \keyword{device}
