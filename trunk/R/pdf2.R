@@ -15,7 +15,7 @@ pdf.box <- function(xleft, ybottom, xright, ytop, text="", link=TRUE,
     text <- rep(text, length.out=length(xleft))
     link <- rep(link, length.out=length(xleft))
     col <- rep(col, length.out=length(xleft))
-    col <- rcol2pdfcol(col)
+    col <- round(rcol2pdfcol(col), 4)
     for (i in seq(along=xleft)) {
         if (any(is.na(col[,i]))) { # do not draw border line
             col[,i] <- c(1,1,1)
@@ -65,12 +65,11 @@ pdf.text <- function(text="", link=TRUE, col="cyan", border=c(0,0,1))
 rcol2pdfcol <- function(col)
 {
     rgb <- matrix(NA, nrow=3, ncol=length(col))
-    palette.col <- palette()
+    idx <- !is.na(col)
     if (is.numeric(col)) {
-        idx <- col %in % seq(along=palette.col)
-        rgb[,idx] <- col2rgb(palette.col[col[idx]])/255
+        col[idx] <- (col[idx]-1) %% length(palette()) + 1
+        rgb[,idx] <- col2rgb(palette()[col[idx]])/255
     } else {
-        idx <- !is.na(col)
         rgb[,idx] <- col2rgb(col[idx])/255
     }
     rgb
