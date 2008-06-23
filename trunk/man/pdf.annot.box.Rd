@@ -25,7 +25,6 @@ pdf.annot.box(xleft, ybottom, xright, ytop, annotation_text, coord = "USER")
   \item{comp2 }{Description of 'comp2'}
   ...
 }
-\references{ ~put references to the literature/web site here ~ }
 \author{Tadashi Kadowaki, R Development Core Team and contributors worldwide}
 \note{
   This function is an internal function that is not exported into

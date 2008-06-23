@@ -5,7 +5,7 @@
   Internal function that will draw a pop-up text box on the current device.
 }
 \usage{
-pdf.box(xleft, ybottom, xright, ytop, text = "", link = TRUE, col = "cyan", border = c(0, 1, 1))
+pdf.box(xleft, ybottom, xright, ytop, text = "", link = TRUE, col = "cyan", border = c(0, 0, 1), coord="USER")
 }
 \arguments{
   \item{xleft}{left x coordinate(s) of the box}
