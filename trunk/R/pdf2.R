@@ -77,9 +77,7 @@ rcol2pdfcol <- function(col)
 
 ### Export functions ###
 
-pdf2 <- function(...) {
-    pdf(...)
-}
+pdf2 <- pdf
 
 mtext <- function (..., url, popup, pcol="cyan", border=c(0,0,1))
 {
