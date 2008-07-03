@@ -43,7 +43,9 @@ echo $contents; } ?>
 
 <!-- end of project description -->
 
-<p> Patches for the bundled pdf device with R is available <a href="/patches"><strong>here</strong></a> </p>
+<p> Old packages are available <a href="/packages"><strong>here</strong></a> </p>
+
+<p> Patches for the bundled pdf device with R are available <a href="/patches"><strong>here</strong></a> </p>
 
 <p> The <strong>project summary page</strong> you can find <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/"><strong>here</strong></a>. </p>
 
