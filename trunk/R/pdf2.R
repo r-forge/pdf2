@@ -108,6 +108,6 @@ rect <- function(xleft, ybottom, xright, ytop, ..., url, popup){
         pdf.box(xleft, ybottom, xright, ytop, url, TRUE, col=col)
     }
     if (!missing(popup)) {
-        pdf.box(xleft, ybottom, xright, ytop, popup, TRUE, col=col)
+        pdf.box(xleft, ybottom, xright, ytop, popup, FALSE, col=col)
     }
 }
