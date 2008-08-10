@@ -43,7 +43,7 @@ echo $contents; } ?>
 
 <!-- end of project description -->
 
-<p> Old packages are available <a href="/packages"><strong>here</strong></a> </p>
+<p> Lastest and old packages are available <a href="/packages"><strong>here</strong></a> </p>
 
 <p> Patches for the bundled pdf device with R are available <a href="/patches"><strong>here</strong></a> </p>
 
