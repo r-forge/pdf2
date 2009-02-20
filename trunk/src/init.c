@@ -35,7 +35,7 @@ static const R_CallMethodDef CallEntries[] = {
 #define EXTDEF(name, n)  {#name, (DL_FUNC) &name, n}
 
 static const R_ExternalMethodDef ExtEntries[] = {
-    EXTDEF(PDF, 13),
+    EXTDEF(PDF, 15),
     EXTDEF(PDFAnnotBox, 6),
     EXTDEF(PDFTextBoxInfo, 0),
     {NULL, NULL, 0}
