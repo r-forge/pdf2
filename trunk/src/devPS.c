@@ -7244,7 +7244,7 @@ static void PDF_add_annot(PDFDesc *pd, char *str)
     int nchar;
 
     if (pd->annotspos >= pd->annotsmax) {
-	annots = realloc(pd->annots, pd->annotsmax + 100);
+	annots = realloc(pd->annots, (pd->annotsmax + 100)*sizeof(char *));
 	if (annots) {
 	    pd->annots = annots;
 	    pd->annotsmax += 100;
