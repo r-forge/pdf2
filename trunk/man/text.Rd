@@ -11,7 +11,7 @@
   'xy.coords(x,y)' is used for construction of the coordinates.
 }
 \usage{
-text(..., url, popup, pcol = "cyan", border = c(0, 0, 1))
+text(..., url, popup, pcol = "cyan", border = c(0, 0, 1), pdf.options=NULL)
 }
 \arguments{
   \item{\dots}{arguments for the \code{text} function of the \code{graphics}
@@ -23,6 +23,7 @@ text(..., url, popup, pcol = "cyan", border = c(0, 0, 1))
   \item{pcol}{color of the border around the text that is often
         used to indicate there is a link; defaults to "cyan"}
   \item{border}{horizontal corner radius, vertical corner radius, and border width}
+  \item{pdf.options}{a vector (or scalar) of PDF script}
 }
 \value{
   The strings in the 'labels' argument are drawn on the current

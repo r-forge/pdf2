@@ -5,7 +5,7 @@
   ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-pdf.text(text = "", link = TRUE, col = "cyan", border = c(0, 0, 1))
+pdf.text(text = "", link = TRUE, col = "cyan", border = c(0, 0, 1), pdf.options=NULL)
 }
 \arguments{
   \item{text}{ ~~Describe \code{text} here~~ }
@@ -13,6 +13,7 @@ pdf.text(text = "", link = TRUE, col = "cyan", border = c(0, 0, 1))
   \item{col}{color(s) of the border(s) around the text(s) which are
        often used to indicate the presence of a link; defaults to "cyan"}
   \item{border}{ ~~Describe \code{border} here~~ }
+  \item{pdf.options}{a vector (or scalar) of PDF script}
 }
 \details{
   ~~ If necessary, more details than the description above ~~

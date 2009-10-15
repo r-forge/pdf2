@@ -1,4 +1,6 @@
 # This is a sample for extending pdf device
+library(pdf2)
+
 pdf("pdf2.pdf")
 par(oma=c(2,2,2,2))
 
@@ -26,6 +28,6 @@ text(5, 2, "text test", url="http://www.google.com")
 mtext("mtext test 1", cex=2, popup="Hello, world!")
 mtext("mtext test 2", side = 2, line=2, url="http://www.apple.com")
 mtext("mtext test 3", outer=TRUE, side = 1, url="http://www.bioconductor.org")
-mtext("mtext test 4", outer=TRUE, side = 4, cex=3, url="http://www.playstation.com")
+mtext("mtext test 4", outer=TRUE, side = 4, cex=3, url="http://www.playstation.com", pcol=NA)
 
 dev.off()
