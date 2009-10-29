@@ -543,6 +543,7 @@ SEXP Rf_asChar(SEXP);
 SEXP Rf_coerceVector(SEXP, SEXPTYPE);
 SEXP Rf_PairToVectorList(SEXP x);
 SEXP Rf_VectorToPairList(SEXP x);
+SEXP Rf_asCharacterFactor(SEXP x);
 int Rf_asLogical(SEXP x);
 int Rf_asInteger(SEXP x);
 double Rf_asReal(SEXP x);
@@ -630,7 +631,9 @@ void R_Reprotect(SEXP, PROTECT_INDEX);
 SEXP R_tryEval(SEXP, SEXP, int *);
 
 Rboolean Rf_isS4(SEXP);
-SEXP Rf_asS4(SEXP, Rboolean);
+SEXP Rf_asS4(SEXP, Rboolean, int);
+SEXP Rf_S3Class(SEXP);
+int Rf_isBasicClass(const char *);
 
 typedef enum {
     CE_NATIVE = 0,
@@ -830,6 +833,7 @@ int R_system(const char *);
 #define applyClosure		Rf_applyClosure
 #define arraySubscript		Rf_arraySubscript
 #define asChar			Rf_asChar
+#define asCharacterFactor	Rf_asCharacterFactor
 #define asComplex		Rf_asComplex
 #define asInteger		Rf_asInteger
 #define asLogical		Rf_asLogical
@@ -869,6 +873,7 @@ int R_system(const char *);
 #define inherits		Rf_inherits
 #define install			Rf_install
 #define isArray			Rf_isArray
+#define isBasicClass            Rf_isBasicClass
 #define isComplex		Rf_isComplex
 #define isEnvironment		Rf_isEnvironment
 #define isExpression		Rf_isExpression
@@ -934,6 +939,7 @@ int R_system(const char *);
 #define protect			Rf_protect
 #define reEnc			Rf_reEnc
 #define rownamesgets		Rf_rownamesgets
+#define S3Class                 Rf_S3Class
 #define ScalarComplex		Rf_ScalarComplex
 #define ScalarInteger		Rf_ScalarInteger
 #define ScalarLogical		Rf_ScalarLogical
