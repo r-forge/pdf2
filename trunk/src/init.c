@@ -26,17 +26,21 @@
 
 static R_NativePrimitiveArgType R_chull_t[] = {INTSXP, REALSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP};
 
+/*
 #ifndef WIN32
 void *getQuartzAPI();
 #endif
+*/
 
 #define CDEF(name)  {#name, (DL_FUNC) &name, sizeof(name ## _t)/sizeof(name ## _t[0]), name ##_t}
 
 static R_CMethodDef CEntries [] = {
     CDEF(R_chull),
+/*
 #ifndef WIN32
     {"getQuartzAPI", (DL_FUNC) getQuartzAPI, 0},
 #endif
+*/
     {NULL, NULL, 0}
 };
 
@@ -46,25 +50,33 @@ static const R_CallMethodDef CallEntries[] = {
     CALLDEF(Type1FontInUse, 2),
     CALLDEF(CIDFontInUse, 2),
     {"R_GD_nullDevice", (DL_FUNC) &R_GD_nullDevice, 0},
+/*
 #ifndef WIN32
     CALLDEF(makeQuartzDefault, 0),
 #endif
+*/
     {NULL, NULL, 0}
 };
 
 #define EXTDEF(name, n)  {#name, (DL_FUNC) &name, n}
 
 static const R_ExternalMethodDef ExtEntries[] = {
+/*
     EXTDEF(PicTeX, 6),
+*/
     EXTDEF(PostScript, 16),
+/*
     EXTDEF(XFig, 11),
+*/
     EXTDEF(PDF, 15),
+/*
 #ifdef WIN32
     EXTDEF(devga, 17),
     EXTDEF(savePlot, 3),
 #else
     EXTDEF(Quartz, 12),
 #endif
+*/
     {NULL, NULL, 0}
 };
 
