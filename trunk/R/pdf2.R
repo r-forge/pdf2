@@ -58,7 +58,7 @@ pdf.text.info <- function()
     }
 }
 
-pdf.text <- function(text="", link=TRUE, col="cyan", border=c(0,0,1), annot.options=NULL, annot.func=NULL=NULL)
+pdf.text <- function(text="", link=TRUE, col="cyan", border=c(0,0,1), annot.options=NULL, annot.func=NULL)
 {
     geo <- pdf.text.info()
     m <- matrix(c(geo[2], geo[3], -geo[3], geo[2]), nrow=2)/geo[1]
@@ -86,7 +86,7 @@ rcol2pdfcol <- function(col)
 
 pdf2 <- pdf
 
-mtext <- function (..., url, popup, pcol="cyan", border=c(0,0,1), annot.options=NULL, annot.func=NULL=NULL)
+mtext <- function (..., url, popup, pcol="cyan", border=c(0,0,1), annot.options=NULL, annot.func=NULL)
 {
     graphics::mtext(...)
     if (!missing(url)) {
@@ -97,7 +97,7 @@ mtext <- function (..., url, popup, pcol="cyan", border=c(0,0,1), annot.options=
     }
 }
 
-text <- function(..., url, popup, pcol="cyan", border=c(0,0,1), annot.options=NULL, annot.func=NULL=NULL)
+text <- function(..., url, popup, pcol="cyan", border=c(0,0,1), annot.options=NULL, annot.func=NULL)
 {
     graphics::text(...)
     if (!missing(url)) {
@@ -108,7 +108,7 @@ text <- function(..., url, popup, pcol="cyan", border=c(0,0,1), annot.options=NU
     }
 }
 
-rect <- function(xleft, ybottom, xright, ytop, ..., url, popup, annot.options=NULL, annot.func=NULL=NULL)
+rect <- function(xleft, ybottom, xright, ytop, ..., url, popup, annot.options=NULL, annot.func=NULL)
 {
     graphics::rect(xleft, ybottom, xright, ytop, ...)
     col <- rep(NA, length(xleft))
