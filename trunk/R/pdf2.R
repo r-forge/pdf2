@@ -10,7 +10,7 @@ pdf.annot.box <- function(xleft, ybottom, xright, ytop,
 }
 
 pdf.box <- function(xleft, ybottom, xright, ytop, text="", link=TRUE,
-                    col="cyan", border=c(0,0,1), coord="USER", pdf.options=NULL)
+                    col="cyan", border=c(0,0,1), coord="USER", annot.options=NULL)
 {
     text <- rep(text, length.out=length(xleft))
     link <- rep(link, length.out=length(xleft))
@@ -42,6 +42,7 @@ pdf.box <- function(xleft, ybottom, xright, ytop, text="", link=TRUE,
           annotation.text <- c(annotation.text, paste(key, annotation[[key]]))
         }
         annotation.text <- paste(annotation.text, collapse="\n")
+        annotation.text <- paste(unlist(c(annotation.text, annot.options)), sep="\n")
         pdf.annot.box(xleft[i], ybottom[i], xright[i], ytop[i], annotation.text, coord)
     }
 }
@@ -53,7 +54,7 @@ pdf.text.info <- function()
     }
 }
 
-pdf.text <- function(text="", link=TRUE, col="cyan", border=c(0,0,1), pdf.options=NULL)
+pdf.text <- function(text="", link=TRUE, col="cyan", border=c(0,0,1), annot.options=NULL)
 {
     geo <- pdf.text.info()
     m <- matrix(c(geo[2], geo[3], -geo[3], geo[2]), nrow=2)/geo[1]
@@ -61,7 +62,7 @@ pdf.text <- function(text="", link=TRUE, col="cyan", border=c(0,0,1), pdf.option
                c(geo[6], -geo[8]), c(geo[6], geo[7]))
     xx <- m %*% x + c(geo[4], geo[5])
     pdf.box(min(xx[1,]), min(xx[2,]), max(xx[1,]), max(xx[2,]), text, link,
-            col, border, "DEVICE", pdf.options)
+            col, border, "DEVICE", annot.options)
 }
 
 rcol2pdfcol <- function(col)
@@ -81,36 +82,36 @@ rcol2pdfcol <- function(col)
 
 pdf2 <- pdf
 
-mtext <- function (..., url, popup, pcol="cyan", border=c(0,0,1), pdf.options=NULL)
+mtext <- function (..., url, popup, pcol="cyan", border=c(0,0,1), annot.options=NULL)
 {
     graphics::mtext(...)
     if (!missing(url)) {
-        pdf.text(url, TRUE, pcol, border, pdf.options)
+        pdf.text(url, TRUE, pcol, border, annot.options)
     }
     if (!missing(popup)) {
-        pdf.text(popup, FALSE, pcol, border, pdf.options)
+        pdf.text(popup, FALSE, pcol, border, annot.options)
     }
 }
 
-text <- function(..., url, popup, pcol="cyan", border=c(0,0,1), pdf.options=NULL)
+text <- function(..., url, popup, pcol="cyan", border=c(0,0,1), annot.options=NULL)
 {
     graphics::text(...)
     if (!missing(url)) {
-        pdf.text(url, TRUE, pcol, border, pdf.options)
+        pdf.text(url, TRUE, pcol, border, annot.options)
     }
     if (!missing(popup)) {
-        pdf.text(popup, FALSE, pcol, border, pdf.options)
+        pdf.text(popup, FALSE, pcol, border, annot.options)
     }
 }
 
-rect <- function(xleft, ybottom, xright, ytop, ..., url, popup, pdf.options=NULL)
+rect <- function(xleft, ybottom, xright, ytop, ..., url, popup, annot.options=NULL)
 {
     graphics::rect(xleft, ybottom, xright, ytop, ...)
     col <- rep(NA, length(xleft))
     if (!missing(url)){
-        pdf.box(xleft, ybottom, xright, ytop, url, TRUE, col=col, pdf.options)
+        pdf.box(xleft, ybottom, xright, ytop, url, TRUE, col=col, annot.options)
     }
     if (!missing(popup)) {
-        pdf.box(xleft, ybottom, xright, ytop, popup, FALSE, col=col, pdf.options)
+        pdf.box(xleft, ybottom, xright, ytop, popup, FALSE, col=col, annot.options)
     }
 }

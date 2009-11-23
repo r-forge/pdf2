@@ -10,7 +10,7 @@
   given coordinates, fill and border colors.
 }
 \usage{
-rect(xleft, ybottom, xright, ytop, ..., url, popup, pdf.options=NULL)
+rect(xleft, ybottom, xright, ytop, ..., url, popup, annot.options=NULL)
 }
 \arguments{
   \item{xleft}{a vector (or scalar) of left x positions.}
@@ -22,7 +22,7 @@ rect(xleft, ybottom, xright, ytop, ..., url, popup, pdf.options=NULL)
   \item{url}{URL(s) to which the hyperlink(s) will point}
   \item{popup}{text(s) for the pop-up(s) that will be displayed when
                one hovers over the (\code{mtext}) text(s)}
-  \item{pdf.options}{a vector (or scalar) of PDF script}
+  \item{annot.options}{a vector (or scalar) of PDF script}
 }
 \value{
   The given rectangle(s) are written onto the current plot with
