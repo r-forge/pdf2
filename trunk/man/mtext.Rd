@@ -7,7 +7,7 @@
   hyperlinks for the pdf device.
 }
 \usage{
-mtext(..., url, popup, pcol = "cyan", border = c(0, 0, 1), annot.options=NULL)
+mtext(..., url, popup, pcol = "cyan", border = c(0, 0, 1), annot.options=NULL, annot.func=NULL)
 }
 \arguments{
   \item{\dots}{arguments for the \code{mtext} function of the
@@ -19,6 +19,7 @@ mtext(..., url, popup, pcol = "cyan", border = c(0, 0, 1), annot.options=NULL)
         used to indicate there is a link; defaults to "cyan"}
   \item{border}{horizontal corner radius, vertical corner radius, and border width}
   \item{annot.options}{a vector (or scalar) of PDF script}
+  \item{annot.func}{user-defined function to generate PDF script}
 }
 \value{
   The given text is written onto the current plot with

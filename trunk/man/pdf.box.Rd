@@ -5,7 +5,7 @@
   Internal function that will draw a pop-up text box on the current device.
 }
 \usage{
-pdf.box(xleft, ybottom, xright, ytop, text = "", link = TRUE, col = "cyan", border = c(0, 0, 1), coord="USER"), annot.options=NULL
+pdf.box(xleft, ybottom, xright, ytop, text = "", link = TRUE, col ="cyan", border = c(0, 0, 1), coord="USER", annot.options=NULL, annot.func=NULL)
 }
 \arguments{
   \item{xleft}{left x coordinate(s) of the box}
@@ -20,6 +20,7 @@ pdf.box(xleft, ybottom, xright, ytop, text = "", link = TRUE, col = "cyan", bord
   \item{border}{horizontal corner radius, vertical corner radius, and border width}
   \item{coord}{coordinate system; defaults to "USER"}
   \item{annot.options}{a vector (or scalar) of PDF script}
+  \item{annot.func}{user-defined function to generate PDF script}
 }
 \value{
   pop-up boxes are drawn on the current device

@@ -5,7 +5,7 @@
   ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-pdf.text(text = "", link = TRUE, col = "cyan", border = c(0, 0, 1), annot.options=NULL)
+pdf.text(text = "", link = TRUE, col = "cyan", border = c(0, 0, 1), annot.options=NULL, annot.func=NULL)
 }
 \arguments{
   \item{text}{ ~~Describe \code{text} here~~ }
@@ -14,6 +14,7 @@ pdf.text(text = "", link = TRUE, col = "cyan", border = c(0, 0, 1), annot.option
        often used to indicate the presence of a link; defaults to "cyan"}
   \item{border}{ ~~Describe \code{border} here~~ }
   \item{annot.options}{a vector (or scalar) of PDF script}
+  \item{annot.func}{user-defined function to generate PDF script}
 }
 \details{
   ~~ If necessary, more details than the description above ~~
