@@ -42,7 +42,8 @@ pdf.box <- function(xleft, ybottom, xright, ytop, text="", link=TRUE,
           annotation.text <- c(annotation.text, paste(key, annotation[[key]]))
         }
         annotation.text <- paste(annotation.text, collapse="\n")
-        annotation.text <- paste(unlist(c(annotation.text, annot.options)), sep="\n")
+        annotation.text <- paste(unlist(c(annotation.text, annot.options)), collapse="\n")
+        print(annotation.text)
         pdf.annot.box(xleft[i], ybottom[i], xright[i], ytop[i], annotation.text, coord)
     }
 }
