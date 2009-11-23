@@ -10,40 +10,43 @@ pdf.annot.box <- function(xleft, ybottom, xright, ytop,
 }
 
 pdf.box <- function(xleft, ybottom, xright, ytop, text="", link=TRUE,
-                    col="cyan", border=c(0,0,1), coord="USER", annot.options=NULL)
+                    col="cyan", border=c(0,0,1), coord="USER", annot.options=NULL, annot.func=NULL)
 {
     text <- rep(text, length.out=length(xleft))
     link <- rep(link, length.out=length(xleft))
     col <- rep(col, length.out=length(xleft))
     col <- round(rcol2pdfcol(col), 4)
     for (i in seq(along=xleft)) {
-        if (any(is.na(col[,i]))) { # do not draw border line
-            col[,i] <- c(1,1,1)
-            border <- c(0,0,0)
+        if (!is.null(annot.func)) {
+            annotation.text <- annot.func(text[i], link[i], col[i], border, coord, annot.options)
         } else {
-            border <- as.integer(abs(border))[1:3]
+            if (any(is.na(col[,i]))) { # do not draw border line
+                col[,i] <- c(1,1,1)
+                border <- c(0,0,0)
+            } else {
+                border <- as.integer(abs(border))[1:3]
+            }
+            annotation <- list()
+            annotation[["/C"]] <- paste(c("[", col[,i], "]"), collapse=" ")
+            annotation[["/Border"]] <- paste(c("[", border, "]"), collapse=" ")
+            if (link[i]) {
+                annotation[["/Subtype"]] <- "/Link"
+                annotation[["/A"]] <- paste("<<\n  /Type /Action\n  /S /URI\n  /URI(",
+                                            as.character(text[i]), ")\n>>", sep="")
+            } else {
+                annotation[["/Subtype"]] <- "/Square"
+                annotation[["/Name"]] <- "/Comment"
+                annotation[["/Contents"]] <- paste("(", as.character(text[i]), ")", sep="")
+                annotation[["/F"]] <- "288"
+##                annotation[["/BS"]] <- "<<\n  /Type /Border\n  /W 0\n>>"
+            }
+            annotation.text <- NULL
+            for (key in names(annotation)) {
+              annotation.text <- c(annotation.text, paste(key, annotation[[key]]))
+            }
+            annotation.text <- paste(annotation.text, collapse="\n")
+            annotation.text <- paste(unlist(c(annotation.text, annot.options)), collapse="\n")
         }
-        annotation <- list()
-        annotation[["/C"]] <- paste(c("[", col[,i], "]"), collapse=" ")
-        annotation[["/Border"]] <- paste(c("[", border, "]"), collapse=" ")
-        if (link[i]) {
-            annotation[["/Subtype"]] <- "/Link"
-            annotation[["/A"]] <- paste("<<\n  /Type /Action\n  /S /URI\n  /URI(",
-                                        as.character(text[i]), ")\n>>", sep="")
-        } else {
-            annotation[["/Subtype"]] <- "/Square"
-            annotation[["/Name"]] <- "/Comment"
-            annotation[["/Contents"]] <- paste("(", as.character(text[i]), ")", sep="")
-            annotation[["/F"]] <- "288"
-##            annotation[["/BS"]] <- "<<\n  /Type /Border\n  /W 0\n>>"
-        }
-        annotation.text <- NULL
-        for (key in names(annotation)) {
-          annotation.text <- c(annotation.text, paste(key, annotation[[key]]))
-        }
-        annotation.text <- paste(annotation.text, collapse="\n")
-        annotation.text <- paste(unlist(c(annotation.text, annot.options)), collapse="\n")
-        print(annotation.text)
         pdf.annot.box(xleft[i], ybottom[i], xright[i], ytop[i], annotation.text, coord)
     }
 }
