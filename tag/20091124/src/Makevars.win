@@ -1,0 +1,2 @@
+PKG_CFLAGS=-Iwin32 -Iinclude -DHAVE_CONFIG_H
+PKG_LIBS=-lRzlib
