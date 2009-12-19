@@ -1,6 +1,6 @@
 Package: pdf2
-Version: 2.10.0.4
-Date: 2009-12-17
+Version: 2.10.0.5
+Date: 2009-12-19
 Title: A PDF graphics device with pop-up strings and hyperlinks
 Author: Tadashi Kadowaki, Tobias Verbeke, R Development Core Team and contributors worldwide
 Maintainer: Tadashi Kadowaki <tadakado@gmail.com>

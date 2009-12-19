@@ -113,9 +113,9 @@ rect <- function(xleft, ybottom, xright, ytop, ..., url, popup, annot.options=NU
     graphics::rect(xleft, ybottom, xright, ytop, ...)
     col <- rep(NA, length(xleft))
     if (!missing(url)){
-        pdf.box(xleft, ybottom, xright, ytop, url, TRUE, col=col, annot.options, annot.func)
+        pdf.box(xleft, ybottom, xright, ytop, url, TRUE, col=col, annot.options=annot.options, annot.func=annot.func)
     }
     if (!missing(popup)) {
-        pdf.box(xleft, ybottom, xright, ytop, popup, FALSE, col=col, annot.options, annot.func)
+        pdf.box(xleft, ybottom, xright, ytop, popup, FALSE, col=col, annot.options=annot.options, annot.func=annot.func)
     }
 }
