@@ -5214,6 +5214,7 @@ typedef struct {
 
     int nobjs;  /* number of objects */
     int *pos; /* object positions */
+    int posmax; /* pos allocated size */
     int *pageobj; /* page object numbers */
     int pagemax;
     int startstream; /* position of start of current stream */
@@ -5298,6 +5299,7 @@ static void PDF_Text(double x, double y, const char *str,
 		     pDevDesc dd);
 static void PDF_free_annots(PDFDesc *pd);
 static void PDF_add_annot(PDFDesc *pd, char *str);
+static void PDF_pos_grow(PDFDesc *pd);
 static double PDF_StrWidthUTF8(const char *str,
 			       const pGEcontext gc,
 			       pDevDesc dd);
@@ -5414,6 +5416,7 @@ PDFDeviceDriver(pDevDesc dd, const char *file, const char *paper,
 	free(pd); free(dd);
 	error(_("cannot allocate pd->pos"));
     }
+    pd->posmax = 1150;
     pd->pageobj = (int *) calloc(100, sizeof(int));
     if(!pd->pageobj) {
 	free(pd->pos);free(pd); free(dd);
@@ -6046,6 +6049,7 @@ static void PDF_Encodings(PDFDesc *pd)
 
     while (enclist) {
 	encodinginfo encoding = enclist->encoding;
+	PDF_pos_grow(pd);
 	pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 
 	fprintf(pd->pdffp, "%d 0 obj\n<<\n/Type /Encoding\n", pd->nobjs);
@@ -6115,6 +6119,7 @@ static void PDF_startfile(PDFDesc *pd)
      */
     fprintf(pd->pdffp, "%%PDF-%i.%i\n%%\x81\xe2\x81\xe3\x81\xcf\x81\xd3\x5c\x72\n",
 	    pd->versionMajor, pd->versionMinor);
+    PDF_pos_grow(pd);
     pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 
     /* Object 1 is Info node. Date format is from the PDF manual */
@@ -6135,6 +6140,7 @@ static void PDF_startfile(PDFDesc *pd)
 
     /* Object 2 is the Catalog, pointing to pages list in object 3 (at end) */
 
+    PDF_pos_grow(pd);
     pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
     fprintf(pd->pdffp, "2 0 obj\n<<\n/Type /Catalog\n/Pages 3 0 R\n>>\nendobj\n");
 
@@ -6268,6 +6274,7 @@ static void PDF_endfile(PDFDesc *pd)
      */
 
     if (pd->fontUsed[1]) {
+        PDF_pos_grow(pd);
 	pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 	fprintf(pd->pdffp, "%d 0 obj\n<<\n/Type /Font\n/Subtype /Type1\n/Name /F1\n/BaseFont /ZapfDingbats\n>>\nendobj\n", pd->nobjs);
     }
@@ -6293,6 +6300,7 @@ static void PDF_endfile(PDFDesc *pd)
 		    type1fontinfo fn = fontlist->family->fonts[i];
 		    int base = isBase14(fn->name);
 		    metrics = &fn->metrics;
+		    PDF_pos_grow(pd);
 		    pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 		    fprintf(pd->pdffp, "%d 0 obj <<\n/Type /Font\n/Subtype /Type1\n/Name /F%d\n/BaseFont /%s\n",
 			    pd->nobjs,
@@ -6336,6 +6344,7 @@ static void PDF_endfile(PDFDesc *pd)
 			    (isSans(fn->name) ? 0 : 2);
 			/* <FIXME> we have no real way to know
 			   if this is serif or not */
+			PDF_pos_grow(pd);
 			pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 			fprintf(pd->pdffp,
 				"%d 0 obj <<\n"
@@ -6372,6 +6381,7 @@ static void PDF_endfile(PDFDesc *pd)
 	}
 	while (fontlist) {
 	    for (i = 0; i < 4; i++) {
+	        PDF_pos_grow(pd);
 		pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 		fprintf(pd->pdffp,
 			/** format **/
@@ -6410,6 +6420,7 @@ static void PDF_endfile(PDFDesc *pd)
 		cidnfonts++;
 	    }
 	    /* Symbol face does not use encoding */
+	    PDF_pos_grow(pd);
 	    pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 	    fprintf(pd->pdffp, "%d 0 obj\n<<\n/Type /Font\n/Subtype /Type1\n/Name /F%d\n/BaseFont /%s\n>>\nendobj\n",
 		    pd->nobjs,
@@ -6425,12 +6436,14 @@ static void PDF_endfile(PDFDesc *pd)
      * dictionaries for alpha transparency
      */
     for (i = 0; i < 256 && pd->colAlpha[i] >= 0; i++) {
+        PDF_pos_grow(pd);
 	pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 	fprintf(pd->pdffp,
 		"%d 0 obj\n<<\n/Type /ExtGState\n/CA %1.3f >>\nendobj\n",
 		pd->nobjs, pd->colAlpha[i]/255.0);
     }
     for (i = 0; i < 256 && pd->fillAlpha[i] >= 0; i++) {
+        PDF_pos_grow(pd);
 	pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 	fprintf(pd->pdffp,
 		"%d 0 obj\n<<\n/Type /ExtGState\n/ca %1.3f\n>>\nendobj\n",
@@ -6504,9 +6517,11 @@ static void PDF_endpage(PDFDesc *pd)
     fprintf(pd->pdffp, "Q\n");
     here = (int) ftell(pd->pdffp);
     fprintf(pd->pdffp, "endstream\nendobj\n");
+    PDF_pos_grow(pd);
     pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
     fprintf(pd->pdffp, "%d 0 obj\n%d\nendobj\n", pd->nobjs,
 	    here - pd->startstream);
+    PDF_pos_grow(pd);
     pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
     fprintf(pd->pdffp, "%d 0 obj\n<<\n/Type /Page\n/Parent 3 0 R\n/Contents %d 0 R\n/Resources 4 0 R\n",
 	    pd->nobjs, pd->nobjs-2);
@@ -6518,6 +6533,7 @@ static void PDF_endpage(PDFDesc *pd)
     }
     fprintf(pd->pdffp, ">>\nendobj\n");
     for(i = 0 ; i < pd->annotspos ; i++) {
+        PDF_pos_grow(pd);
 	pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 	fprintf(pd->pdffp, "%d %s", pd->nobjs, pd->annots[i]);
 	free(pd->annots[i]);
@@ -6537,8 +6553,9 @@ static void PDF_NewPage(const pGEcontext gc,
     if(pd->pageno >= pd->pagemax || pd->nobjs >= 3*pd->pagemax) {
 	pd->pageobj = (int *)
 	    realloc(pd->pageobj, 2*pd->pagemax * sizeof(int));
-	pd->pos = (int *) realloc(pd->pos,
-				  (6*pd->pagemax + 550) * sizeof(int));
+	if (6*pd->pagemax + 550 > pd->posmax)
+	    pd->pos = (int *) realloc(pd->pos,
+				      (6*pd->pagemax + 550) * sizeof(int));
 	if(!pd->pos || !pd->pageobj)
 	    error(_("unable to increase page limit: please shutdown the pdf device"));
 	pd->pagemax *= 2;
@@ -6559,6 +6576,7 @@ static void PDF_NewPage(const pGEcontext gc,
     }
 
     pd->pageobj[pd->pageno++] = pd->nobjs + 3;
+    PDF_pos_grow(pd);
     pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
     fprintf(pd->pdffp, "%d 0 obj\n<<\n/Length %d 0 R\n>>\nstream\r\n",
 	    pd->nobjs, pd->nobjs + 1);
@@ -7391,6 +7409,7 @@ static void PDF_free_annots(PDFDesc *pd)
     int i;
     for (i = 0; i < pd->annotspos; i++) free(pd->annots[i]);
     free(pd->annots);
+    pd->annotspos = 0;
 }
 
 static void PDF_add_annot(PDFDesc *pd, char *str)
@@ -7417,6 +7436,20 @@ static void PDF_add_annot(PDFDesc *pd, char *str)
     pd->annots[pd->annotspos++] = annot_str;
 }
 
+static void PDF_pos_grow(PDFDesc *pd)
+{
+    int *pos;
+
+    if (pd->nobjs +1 >= pd->posmax) {
+        pos = realloc(pd->pos, (pd->posmax + 500)*sizeof(int));
+	if (pos) {
+	    pd->pos = pos;
+	    pd->posmax += 500;
+	} else {
+	    error(_("unable to increase pd->pos limit"));
+	}
+    }
+}
 
 /*  PostScript Device Driver Parameters:
  *  ------------------------
