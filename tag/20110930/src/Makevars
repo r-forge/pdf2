@@ -1,0 +1,1 @@
+PKG_CFLAGS=-Iinclude -DHAVE_CONFIG_H
