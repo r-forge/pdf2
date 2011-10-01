@@ -2562,10 +2562,11 @@ static void PSFileHeader(FILE *fp,
 	    left, bottom, right, top);
     fprintf(fp, "%%%%EndComments\n");
     fprintf(fp, "%%%%BeginProlog\n");
+    fprintf(fp,  "/bp  { gs");
+    if (streql(pd->colormodel, "rgb-nogray")) fprintf(fp,  " sRGB");
     if (landscape)
-	fprintf(fp, "/bp  { gs %.2f 0 translate 90 rotate gs } def\n", paperwidth);
-    else
-	fprintf(fp, "/bp  { gs gs } def\n");
+	fprintf(fp, " %.2f 0 translate 90 rotate", paperwidth);
+    fprintf(fp, " gs } def\n");
     prolog = findVar(install(".ps.prolog"), R_GlobalEnv);
     if(prolog == R_UnboundValue) {
 	/* if no object is visible, look in the graphics namespace */
@@ -2584,7 +2585,11 @@ static void PSFileHeader(FILE *fp,
     for (i = 0; i < length(prolog); i++)
 	fprintf(fp, "%s\n", CHAR(STRING_ELT(prolog, i)));
     fprintf(fp, "%% end   .ps.prolog\n");
-    PSEncodeFonts(fp, pd);
+     if (streql(pd->colormodel, "rgb"))
+	fprintf(fp, "/srgb { sRGB setcolor } bind def\n");
+    else if (streql(pd->colormodel, "rgb-nogray"))
+	fprintf(fp, "/srgb { setcolor } bind def\n");
+   PSEncodeFonts(fp, pd);
 
     fprintf(fp, "%%%%EndProlog\n");
 }
@@ -2606,18 +2611,6 @@ static void PostScriptStartPage(FILE *fp, int pageno)
 static void PostScriptEndPage(FILE *fp)
 {
     fprintf(fp, "ep\n");
-}
-
-static void PostScriptInitColorSpace(FILE *fp)
-{
-    /* From PLRM 3rd Ed pg 225 */
-    fprintf(fp, "[ /CIEBasedABC\n");
-    fprintf(fp, "  << /DecodeLMN\n");
-    fprintf(fp, "       [ { dup 0.03928 le {12.92321 div} {0.055 add 1.055 div 2.4 exp } ifelse } bind dup dup ]\n");
-    fprintf(fp, "     /MatrixLMN [0.412457 0.212673 0.019334 0.357576 0.715152 0.119192 0.180437 0.072175 0.950301]\n");
-    fprintf(fp, "     /WhitePoint [0.9505 1.0 1.0890]\n");
-    fprintf(fp, "  >>\n");
-    fprintf(fp, "] setcolorspace\n");
 }
 
 static void PostScriptSetClipRect(FILE *fp, double x0, double x1,
@@ -3051,7 +3044,7 @@ static void PostScriptSetCol(FILE *fp, double r, double g, double b,
 	    if(b == 0) fprintf(fp, " 0");
 	    else if (b == 1) fprintf(fp, " 1");
 	    else fprintf(fp, " %.4f", b);
-	    fprintf(fp," setrgb");
+	    fprintf(fp," srgb");
 	}
     }
 }
@@ -3698,7 +3691,6 @@ static void PS_NewPage(const pGEcontext gc,
 	pd->pageno = 1;
     } else pd->pageno++;
     PostScriptStartPage(pd->psfp, pd->pageno);
-    PostScriptInitColorSpace(pd->psfp);
     Invalidate(dd);
     CheckAlpha(gc->fill, pd);
     if(R_OPAQUE(gc->fill)) {
@@ -3934,15 +3926,11 @@ static void PS_imagedata(rcolorPtr raster,
 			  PostScriptDesc *pd)
 {
     /* Each original byte is translated to two hex digits
-     * (representing a number between 0 and 256)
-     * End-of-data signalled by a '>'
+     * (representing a number between 0 and 255)
      */
-    int i;
-    for (i=0; i<w*h; i++) {
-	fprintf(pd->psfp, "%02x", R_RED(raster[i]));
-	fprintf(pd->psfp, "%02x", R_GREEN(raster[i]));
-	fprintf(pd->psfp, "%02x", R_BLUE(raster[i]));
-    }
+    for (int i = 0; i < w*h; i++)
+	fprintf(pd->psfp, "%02x%02x%02x",
+		R_RED(raster[i]), R_GREEN(raster[i]), R_BLUE(raster[i]));
 }
 
 static void PS_writeRaster(unsigned int *raster, int w, int h,
@@ -3954,41 +3942,44 @@ static void PS_writeRaster(unsigned int *raster, int w, int h,
     PostScriptDesc *pd = (PostScriptDesc *) dd->deviceSpecific;
 
     /* This takes the simple approach of creating an inline
-     * image.  This will not work for larger images
-     * (more than 10000 pixels, e.g., 100x100)
-     * due to hard limits in the PostScript language.
-     * There is no support for semitransparent images.
+     * image.
+     * There is no support for semitransparent images, not even
+     * for transparent pixels (missing values in image(useRaster = TRUE) ).
+     *
+     * The version in R < 2.13.2 used colorimage, hence the DeviceRGB
+     * colour space.
      */
     /* Save graphics state */
-    fprintf(pd->psfp,
-	    "gsave\n");
+    fprintf(pd->psfp, "gsave\n");
+    /* set the colour space: this form of the image operator uses the 
+       current colour space. */
+    if (streql(pd->colormodel, "rgb") || streql(pd->colormodel, "rgb-nogray"))
+	fprintf(pd->psfp, "sRGB\n");
+    else
+	fprintf(pd->psfp, "/DeviceRGB setcolorspace\n");
     /* translate */
-    fprintf(pd->psfp,
-	    "%.2f %.2f translate\n",
-	    x, y);
+    fprintf(pd->psfp, "%.2f %.2f translate\n", x, y);
     /* rotate */
-    fprintf(pd->psfp,
-	    "%.2f rotate\n", rot);
+    if (rot != 0.0) fprintf(pd->psfp, "%.2f rotate\n", rot);
     /* scale */
-    fprintf(pd->psfp,
-	    "%.2f %.2f scale\n",
-	    width, height);
-    /* Begin image */
-    /* Image characteristics */
-    /* width height bitspercomponent matrix */
-    fprintf(pd->psfp,
-	    "  %d %d 8 [%d 0 0 %d 0 %d]\n",
-	    w, h, w, -h, h);
-    /* Begin image data */
-    fprintf(pd->psfp, "{<\n");
-    /* The image stream */
+    fprintf(pd->psfp, "%.2f %.2f scale\n", width, height);
+    /* write dictionary */
+    fprintf(pd->psfp, "7 dict dup begin\n");
+    fprintf(pd->psfp, "  /ImageType 1 def\n");
+    fprintf(pd->psfp, "  /Width %d def\n", w);
+    fprintf(pd->psfp, "  /Height %d def\n", h);
+    fprintf(pd->psfp, "  /BitsPerComponent 8 def\n");
+    fprintf(pd->psfp, "  /Decode [0 1 0 1 0 1] def\n");
+    fprintf(pd->psfp, "  /DataSource currentfile /ASCIIHexDecode filter def\n");
+    fprintf(pd->psfp, "  /ImageMatrix [%d 0 0 %d 0 %d] def\n", w, -h, h);
+    fprintf(pd->psfp, "end\n");
+    fprintf(pd->psfp, "image\n");
+    /* now the data */
     PS_imagedata(raster, w, h, pd);
-    /* End image */
-    fprintf(pd->psfp, "\n>}\n");
-    fprintf(pd->psfp, "false 3 colorimage\n");
+    /* End-of-data signalled by a '>' */
+    fprintf(pd->psfp, ">\n");
     /* Restore graphics state */
-    fprintf(pd->psfp,
-	    "grestore\n");
+    fprintf(pd->psfp, "grestore\n");
 }
 
 static void PS_Raster(unsigned int *raster, int w, int h,
@@ -4132,6 +4123,8 @@ static void PS_Path(double *x, double *y,
     /* code == 1, outline only */
     /* code == 2, fill only */
     /* code == 3, outline and fill */
+    /* code == 6, eofill only */
+    /* code == 7, outline and eofill */
 
     CheckAlpha(gc->fill, pd);
     CheckAlpha(gc->col, pd);
@@ -5448,7 +5441,7 @@ typedef struct {
 
     /*
      * What version of PDF are we trying to work with?
-     * This is used (so far) for implementing transparency
+     * This is used (so far) for implementing transparency and CID fonts
      * Alphas are only used if version is at least 1.4
      */
     int versionMajor;
@@ -5681,7 +5674,10 @@ static void writeRasterXObject(rasterImage raster, int n,
     fprintf(pd->pdffp, "  /Subtype /Image\n");
     fprintf(pd->pdffp, "  /Width %d\n", raster.w);
     fprintf(pd->pdffp, "  /Height %d\n", raster.h);
-    fprintf(pd->pdffp, "  /ColorSpace 5 0 R\n"); /* sRGB */
+    if (streql(pd->colormodel, "rgb"))
+	fprintf(pd->pdffp, "  /ColorSpace 5 0 R\n"); /* sRGB */
+    else
+	fprintf(pd->pdffp, "  /ColorSpace /DeviceRGB\n");
     fprintf(pd->pdffp, "  /BitsPerComponent 8\n");
     /* Number of bytes in stream: 2 hex digits per original pixel
      * which has 3 color channels, plus final '>' char*/
@@ -6324,7 +6320,8 @@ static void PDF_SetLineColor(int color, pDevDesc dd)
 	if(streql(pd->colormodel, "gray")) {
 	    double r = R_RED(color)/255.0, g = R_GREEN(color)/255.0,
 		b = R_BLUE(color)/255.0;
-	    /* weights from http://www.faqs.org/faqs/graphics/colorspace-faq/ */
+	    /* weights from C-9 of 
+	       http://www.faqs.org/faqs/graphics/colorspace-faq/ */
 	    fprintf(pd->pdffp, "%.3f G\n", (0.213*r+0.715*g+0.072*b));
 	} else if(streql(pd->colormodel, "cmyk")) {
 	    double r = R_RED(color)/255.0, g = R_GREEN(color)/255.0,
@@ -6613,21 +6610,9 @@ static void PDF_startfile(PDFDesc *pd)
     pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
     fprintf(pd->pdffp, "2 0 obj\n<<\n/Type /Catalog\n/Pages 3 0 R\n>>\nendobj\n");
 
-    /* Object 3 will be at the end */
-
-    ++pd->nobjs;
-
-    /* Object 4 will be at the end */
-
-    ++pd->nobjs;
-
-    /* Object 5 will be at the end */
-
-    ++pd->nobjs;
-
-    /* Object 6 will be at the end */
-
-    ++pd->nobjs;
+    /* Objects at the end */
+    pd->nobjs += 2;
+    if (streql(pd->colormodel, "rgb")) pd->nobjs += 2;
 }
 
 static const char *Base14[] =
@@ -6782,24 +6767,20 @@ static void PDF_endfile(PDFDesc *pd)
     }
     fprintf(pd->pdffp, ">>\n");
 
-    /* The sRGB colorspace */
-    fprintf(pd->pdffp, "/ColorSpace << /sRGB 5 0 R >>\n");
-
-    fprintf(pd->pdffp, ">>\nendobj\n");
-
-    /* Objects 5 and 6 are the sRGB color space */
-
-    /* sRGB colorspace */
-    pd->pos[5] = (int) ftell(pd->pdffp);
-    fprintf(pd->pdffp, "5 0 obj\n[/ICCBased 6 0 R]\n");
-    fprintf(pd->pdffp,
-            "endobj\n");
-    pd->pos[6] = (int) ftell(pd->pdffp);
-    fprintf(pd->pdffp,
-            "6 0 obj\n<< /N 3 /Alternate /DeviceRGB /Length 9433 /Filter /ASCIIHexDecode >>\nstream\n");
-    PDFwritesRGBcolorspace(pd);    
-    fprintf(pd->pdffp,
-            " >\nendstream\nendobj\n");
+    if (streql(pd->colormodel, "rgb")) {
+	/* Objects 5 and 6 are the sRGB color space, if required */
+	fprintf(pd->pdffp, "/ColorSpace << /sRGB 5 0 R >>\n");
+	fprintf(pd->pdffp, ">>\nendobj\n");
+	pd->pos[5] = (int) ftell(pd->pdffp);
+	fprintf(pd->pdffp, "5 0 obj\n[/ICCBased 6 0 R]\nendobj\n");
+	pd->pos[6] = (int) ftell(pd->pdffp);
+	fprintf(pd->pdffp,
+		"6 0 obj\n<< /N 3 /Alternate /DeviceRGB /Length 9433 /Filter /ASCIIHexDecode >>\nstream\n");
+	PDFwritesRGBcolorspace(pd);    
+	fprintf(pd->pdffp, " >\nendstream\nendobj\n");
+    } else {
+    	fprintf(pd->pdffp, ">>\nendobj\n");
+    }
     
     /*
      * Write out objects representing the encodings
@@ -6813,7 +6794,7 @@ static void PDF_endfile(PDFDesc *pd)
      */
 
     if (pd->fontUsed[1]) {
-        PDF_pos_grow(pd);
+	PDF_pos_grow(pd);
 	pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 	fprintf(pd->pdffp, "%d 0 obj\n<<\n/Type /Font\n/Subtype /Type1\n/Name /F1\n/BaseFont /ZapfDingbats\n>>\nendobj\n", pd->nobjs);
     }
@@ -6920,7 +6901,7 @@ static void PDF_endfile(PDFDesc *pd)
 	}
 	while (fontlist) {
 	    for (i = 0; i < 4; i++) {
-	        PDF_pos_grow(pd);
+		PDF_pos_grow(pd);
 		pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 		fprintf(pd->pdffp,
 			/** format **/
@@ -6972,6 +6953,7 @@ static void PDF_endfile(PDFDesc *pd)
 
     /* Write out objects representing the raster images */
     for (i=0; i<nraster; i++) {
+	PDF_pos_grow(pd);
 	pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 	writeRasterXObject(pd->rasters[i], pd->nobjs,
 			   pd->masks[i],
@@ -6981,6 +6963,7 @@ static void PDF_endfile(PDFDesc *pd)
     /* Write out objects representing the soft masks */
     for (i=0; i<nraster; i++) {
 	if (pd->masks[i] >= 0) {
+	    PDF_pos_grow(pd);
 	    pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 	    writeMaskXObject(pd->rasters[i], pd->nobjs, pd);
 	}
@@ -6991,14 +6974,14 @@ static void PDF_endfile(PDFDesc *pd)
      * dictionaries for alpha transparency
      */
     for (i = 0; i < 256 && pd->colAlpha[i] >= 0; i++) {
-        PDF_pos_grow(pd);
+	PDF_pos_grow(pd);
 	pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 	fprintf(pd->pdffp,
 		"%d 0 obj\n<<\n/Type /ExtGState\n/CA %1.3f >>\nendobj\n",
 		pd->nobjs, pd->colAlpha[i]/255.0);
     }
     for (i = 0; i < 256 && pd->fillAlpha[i] >= 0; i++) {
-        PDF_pos_grow(pd);
+	PDF_pos_grow(pd);
 	pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 	fprintf(pd->pdffp,
 		"%d 0 obj\n<<\n/Type /ExtGState\n/ca %1.3f\n>>\nendobj\n",
@@ -7006,6 +6989,7 @@ static void PDF_endfile(PDFDesc *pd)
     }
 
     if (nmask > 0) {
+	PDF_pos_grow(pd);
 	pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 	fprintf(pd->pdffp,
 		"%d 0 obj\n<<\n/Type /ExtGState\n/AIS false\n>>\nendobj\n",
@@ -7089,6 +7073,10 @@ static void PDF_endpage(PDFDesc *pd)
     pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
     fprintf(pd->pdffp, "%d 0 obj\n%d\nendobj\n", pd->nobjs,
 	    here - pd->startstream);
+    /*
+     * Following (1)+3 lines are moved from PDF_NewPage
+     * to make insertion of annotation object easily
+     */
     PDF_pos_grow(pd);
     pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
     fprintf(pd->pdffp, "%d 0 obj\n<<\n/Type /Page\n/Parent 3 0 R\n/Contents %d 0 R\n/Resources 4 0 R\n",
@@ -7101,7 +7089,7 @@ static void PDF_endpage(PDFDesc *pd)
     }
     fprintf(pd->pdffp, ">>\nendobj\n");
     for(i = 0 ; i < pd->annotspos ; i++) {
-        PDF_pos_grow(pd);
+	PDF_pos_grow(pd);
 	pd->pos[++pd->nobjs] = (int) ftell(pd->pdffp);
 	fprintf(pd->pdffp, "%d %s", pd->nobjs, pd->annots[i]);
 	free(pd->annots[i]);
@@ -7116,16 +7104,17 @@ static void PDF_NewPage(const pGEcontext gc,
 {
     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
     char buf[512];
-    int i;
 
     if(pd->pageno >= pd->pagemax || pd->nobjs >= 3*pd->pagemax) {
-	pd->pageobj = (int *)
-	    realloc(pd->pageobj, 2*pd->pagemax * sizeof(int));
-	if (6*pd->pagemax + 550 > pd->posmax)
-	    pd->pos = (int *) realloc(pd->pos,
-				      (6*pd->pagemax + 550) * sizeof(int));
-	if(!pd->pos || !pd->pageobj)
+	/* if realloc fails the original block remains allocated */
+	void *tmp = realloc(pd->pageobj, 2*pd->pagemax * sizeof(int));
+	if (!tmp)
 	    error(_("unable to increase page limit: please shutdown the pdf device"));
+	pd->pageobj = (int *) tmp;
+	tmp = realloc(pd->pos, (6*pd->pagemax + 550) * sizeof(int));
+	if(!tmp)
+	    error("unable to increase object limit: please shutdown the pdf device");
+	pd->pos = (int *) tmp;
 	pd->pagemax *= 2;
     }
 
@@ -8088,8 +8077,6 @@ static void PDF_StrSize(const char *str,
 			double* descent_max,
 			double* width_sum)
 {
-    PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
-    int face = gc->fontface;
     double ascent, descent, width;
     int i, n;
 
@@ -8166,6 +8153,12 @@ static void PDF_add_annot(PDFDesc *pd, char *str)
     pd->annots[pd->annotspos++] = annot_str;
 }
 
+/*
+ * Should be called bofore "pd->pos[++pd->nobjs]" to prevent buffer over run
+ * PDF annotation make many objects so that number of objects easily exceeds
+ * (6*pd->pagemax + 550) that is the number of objects prepared when new page
+ * is created by PDF_NewPage
+ */
 static void PDF_pos_grow(PDFDesc *pd)
 {
     int *pos;
